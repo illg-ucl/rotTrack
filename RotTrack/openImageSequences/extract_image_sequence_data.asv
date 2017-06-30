@@ -4,14 +4,14 @@ function [numFrames frame_Ysize frame_Xsize image_data image_path] = extract_ima
 % RotTrack.
 % Copyright (c) 2017. Isabel Llorente-Garcia, Dept. of Physics and Astronomy, University College London, United Kingdom.
 % Released and licensed under a BSD 2-Clause License:
-% https://github.com/illg-ucl/RotTrack/blob/master/LICENSE
+% https://github.com/illg-ucl/rotTrack/blob/master/LICENSE
 % This program is free software: you can redistribute it and/or modify it under the terms of the BSD 2-Clause License.
 % This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the BSD 2-Clause License for more details. You should have received a copy of the BSD 2-Clause License along with this program.
 % Citation: If you use this software for your data analysis please acknowledge it in your publications and cite as follows.
 % -	Citation example 1: 
 % RotTrack software. (Version). 2017. Isabel Llorente-Garcia, 
 % Dept. of Physics and Astronomy, University College London, United Kingdom.
-% https://github.com/illg-ucl/RotTrack. (Download date).
+% https://github.com/illg-ucl/rotTrack. (Download date).
 % 
 % -	Citation example 2:
 % @Manual{... ,
@@ -20,11 +20,11 @@ function [numFrames frame_Ysize frame_Xsize image_data image_path] = extract_ima
 % organization = { Dept. of Physics and Astronomy, University College London, United Kingdom.},
 % address      = {Gower Place, London, UK.},
 % year         = 2017,
-% url          = {https://github.com/illg-ucl/RotTrack}}
+% url          = {https://github.com/illg-ucl/rotTrack}}
 % ========================================
 %
 %
-% Read image sequence (.sif, .dv, .tif or .mat data) and return image data in a useful
+% Read image sequence (.sif, .dv, .tif, .m4v or .mat data) and return image data in a useful
 % form.
 %
 % Inputs: 
@@ -47,6 +47,7 @@ function [numFrames frame_Ysize frame_Xsize image_data image_path] = extract_ima
 dvImagePath0 = dir(strcat('*',image_label,'*.dv')); % Image sequence data path if the image is a .dv file.
 sifImagePath0 = dir(strcat('*',image_label,'*.sif')); % Image sequence data path if the image is a .sif file.
 tifImagePath0 = dir(strcat('*',image_label,'*.tif')); % Image sequence data path if the image is a .tif file.
+m4vImagePath0 = dir(strcat('*',image_label,'*.m4v')); % Image sequence data path if the image is a .m4v file.
 matImagePath0 = dir(strcat('*',image_label,'*.mat')); % Image sequence data path if the image is a .mat file.
 
 % Error control:
@@ -60,7 +61,7 @@ if ~isempty(matImagePath0) && ~isempty(strfind(matImagePath0.name,'good_track_nu
 end
 
 % Error control if neither a .sif, .tif, .mat or .dv file can be found with that label:
-if isempty(dvImagePath0) && isempty(sifImagePath0) && isempty(tifImagePath0) && isempty(matImagePath0) % If there is no .sif, .tif or .dv image sequence file for such image_label, show error and exit function:
+if isempty(dvImagePath0) && isempty(sifImagePath0) && isempty(tifImagePath0) && isempty(m4vImagePath0) && isempty(matImagePath0) % If there is no .sif, .tif or .dv image sequence file for such image_label, show error and exit function:
     error('Check you are in the correct directory and run again. No .sif, .tif, .dv or .mat file found for that image_label.');
 end
 
@@ -170,6 +171,43 @@ if isempty(tifImagePath0)==0
     
 
 end
+
+
+%% For .m4v files 
+
+if isempty(m4vImagePath0)==0
+    
+    image_path = m4vImagePath0.name;    
+    m4v_info = VideoReader(image_path);
+    % Add other useful info to final output:
+    frame_Ysize = m4v_info.Height;
+    frame_Xsize = m4v_info.Width;
+%     % Make the image be a square image:
+%     frame_Ysize = min(frame_Ysize,frame_Xsize);
+%     frame_Xsize = min(frame_Ysize,frame_Xsize);
+
+    % If by any chance the frame size is an odd number:
+    if mod(frame_Ysize,2)~=0 % modulus after division
+        frame_Ysize = frame_Ysize - 1;
+        frame_Xsize = frame_Xsize - 1;
+    end
+    
+    % To produce image data in final output form:
+    % Read in frames:
+    k = 1;
+    while hasFrame(m4v_info)
+        frame = readFrame(m4v_info);
+        frame = single(frame);  % to class single.
+        % frame = double(frame);  % to class double.
+        image_data(k).frame_data = 0.2989 * frame(:,:,1) + 0.5870 * frame(:,:,2) + 0.1140 * frame(:,:,3);
+        % flatten the RGB image 
+        k = k+1;
+    end
+    
+    numFrames = k-1; % number of frames in sequence.    
+    
+end
+
 
 
 %% For .mat files 
