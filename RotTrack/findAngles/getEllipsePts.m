@@ -1,5 +1,5 @@
-function scriptToRun
-
+function [x, y]=getEllipsePts(s)
+%
 % ========================================
 % RotTrack.
 % Copyright (c) 2017. Isabel Llorente-Garcia, Dept. of Physics and Astronomy, University College London, United Kingdom.
@@ -22,38 +22,26 @@ function scriptToRun
 % year         = 2017,
 % url          = {https://github.com/illg-ucl/rotTrack}}
 % ========================================
-
-
-
-
-%% To carry out tests of the methods on a single frame:
-
-% % E.g., extract frame 1 from an image sequence selected from a browsing
-% % dialog:
-% frame1 = extract1frameB(1);
-% 
-% % Find candidate positions for particles:
-% [x1,y1] = findCandidateParticlePositions(frame1,1);
-% 
-% % Eliminate candidate positions closer to each other than 10 pixels:
-% [x1_b,y1_b,pos_to_keep1] = eliminateCoincidentPositions(x1,y1,10);
-% 
-% Plot:
-% figure; imshow(frame1,[],'InitialMagnification',150); hold;
-% plot(x1_b,y1_b,'o','Color','y','MarkerSize',14); hold off;
 %
-% Exclude certain regions from image. Regions to exclude are given by start coordinates (x_start, y_start)
-% and end coordinates (x_end, y_end) that delimit rectangular boxes on image.
-% For Sonia's images:
-% list_xstart = [1 1 1 130];
-% list_xend = [820 112 100 215];
-% list_ystart = [581 492 1 1];
-% list_yend = [614 580 175 54];
-% [x1_c,y1_c] = excludeRegions(x1_b,y1_b,list_xstart,list_xend,list_ystart,list_yend);
-%
-% Plot:
-% figure; imshow(frame1,[],'InitialMagnification',150); hold;
-% plot(x1_c,y1_c,'o','Color','g','MarkerSize',14); hold off;
-%
-% % Test finding particle angle on single frame:
-% s1 = findParticleAngle1frame(frame1,x1_c(1),y1_c(1),50,60);
+% extract elipse coordinates from regions given by 'regionprops'
+phi = linspace(0,2*pi,50);
+cosphi = cos(phi);
+sinphi = sin(phi);
+
+for k = 1:length(s)
+    xbar = s(k).Centroid(1);
+    ybar = s(k).Centroid(2);
+
+    a = s(k).MajorAxisLength/2;
+    b = s(k).MinorAxisLength/2;
+
+    theta = pi*s(k).Orientation/180;
+    R = [ cos(theta)   sin(theta)
+         -sin(theta)   cos(theta)];
+
+    xy = [a*cosphi; b*sinphi];
+    xy = R*xy;
+
+    x = xy(1,:) + xbar;
+    y = xy(2,:) + ybar;
+end

@@ -66,7 +66,7 @@ aroundBead = 35; % For centre of mass method: halfsize of subarray (in pixels) t
 
 %% Method 1: morphological operations:
 
-% Rescale input image frame to have values between 0 and 1: 
+% Rescale input image frame to have values between 0 and 1 (required for thresholding later on): 
 frame0 = mat2gray(frame); 
 
 se1 = strel('disk',disk_radius1); % structural element, disk of radius disk_radius1 (see PARAMETERS).

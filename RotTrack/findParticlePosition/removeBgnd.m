@@ -29,10 +29,9 @@ function frame_final = removeBgnd(frame,xx,yy,inner_radius,subarray_halfsize,met
 % - frame: Input image, a single frame from a recorded sequence.
 % Note that the input image can be obtained as:
 % frame = extract1frameB(framenumber); with framenumber=100, for example.
+%
 % Candidate bead-centre positions obtained with function findCandidateBeadPositions:
-%
 % - xx: columns of positions of candidate beads (horizontal). Vector.
-%
 % - yy: rows of positions of candidate beads (vertical). Vector.
 %
 % - inner_radius: radius (in pixels) of circular mask that contains each entire
