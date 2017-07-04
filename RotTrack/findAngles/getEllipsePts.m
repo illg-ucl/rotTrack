@@ -1,4 +1,4 @@
-function [x, y]=getEllipsePts(s)
+function ellipse = getEllipsePts(s)
 %
 % ========================================
 % RotTrack.
@@ -23,25 +23,46 @@ function [x, y]=getEllipsePts(s)
 % url          = {https://github.com/illg-ucl/rotTrack}}
 % ========================================
 %
-% extract elipse coordinates from regions given by 'regionprops'
-phi = linspace(0,2*pi,50);
+% Extract all points (x, y) of ellipse given by input s. 
+% INPUT: s is the result of using function regionprops on the found connected regions of an image frame.
+% Example of how to use this function:
+% conn_regions = bwconncomp(particle3,8); % find connected components in final binary image
+% conn_regions_props = regionprops(conn_regions,'Orientation', 'MajorAxisLength', 'MinorAxisLength', 'Centroid');
+% [xElli,yElli] = getEllipsePts(conn_regions_props); 
+% Extract elipse coordinates from regions given by 'regionprops'.
+
+phi = linspace(0,2*pi,50)'; % column vector
 cosphi = cos(phi);
 sinphi = sin(phi);
 
-for k = 1:length(s)
-    xbar = s(k).Centroid(1);
-    ybar = s(k).Centroid(2);
+xcentre = s.Centroid(1);
+ycentre = s.Centroid(2);
 
-    a = s(k).MajorAxisLength/2;
-    b = s(k).MinorAxisLength/2;
+a = s.MajorAxisLength/2;
+b = s.MinorAxisLength/2;
 
-    theta = pi*s(k).Orientation/180;
-    R = [ cos(theta)   sin(theta)
-         -sin(theta)   cos(theta)];
+theta = pi*s.Orientation/180;
+% Rotation matrix:
+R = [cos(theta)   sin(theta)
+     -sin(theta)   cos(theta)];
 
-    xy = [a*cosphi; b*sinphi];
-    xy = R*xy;
+xy = [a*cosphi b*sinphi];
+xy_rot = R*xy'; % apply rotation.
 
-    x = xy(1,:) + xbar;
-    y = xy(2,:) + ybar;
-end
+% points of the ellipse:
+x = xy_rot(1,:) + xcentre;
+y = xy_rot(2,:) + ycentre;
+
+% Get major axis:
+% x and y positions of three extreme points in major axis, with respect
+% to centre of ellipse:
+majorAxis_xy = [a 0; 0 0; -a 0]';
+majorAxis_xy_rot = R*majorAxis_xy; % rotated major axis.
+majorAxisXpoints = majorAxis_xy_rot(1,:) + xcentre;
+majorAxisYpoints = majorAxis_xy_rot(2,:) + ycentre;
+
+% Output:
+ellipse.contourXpoints = x; % row vector with x positions of ellipse contour;
+ellipse.contourYpoints = y; % row vector with y positions of ellipse contour;
+ellipse.majorAxisXpoints = majorAxisXpoints; % row vector with x of 3 extreme points of major axis with respect to entire frame.
+ellipse.majorAxisYpoints = majorAxisYpoints; % row vector with y of 3 extreme points of major axis with respect to entire frame.

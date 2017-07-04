@@ -227,29 +227,36 @@ else
     
     if isempty(conn_regions_props) == false
         
-        foundXcentre = conn_regions_props.Centroid(1);
-        foundYcentre = conn_regions_props.Centroid(2);
+        foundXcentre = conn_regions_props.Centroid(1); % x centre-of-mass position within image subarray.
+        foundYcentre = conn_regions_props.Centroid(2); % y centre-of-mass position within image subarray.
         
-        [xElli,yElli] = getEllipsePts(conn_regions_props); % get all points in the ellipse that matches the connected region 
+        % Get all points from ellipse contour to plot them and points in
+        % major axis:
+        ellipse = getEllipsePts(conn_regions_props); % get all points in the ellipse that matches the connected region 
+        xpoints_ellipse = ellipse.contourXpoints;
+        ypoints_ellipse = ellipse.contourYpoints;      
+        xpoints_majorAxis = ellipse.majorAxisXpoints;
+        ypoints_majorAxis = ellipse.majorAxisYpoints;
+        
         % [ySkel, xSkel]=find(skeleton==true); % get all skeleton points
-        % Plot overlap of results on frame:
-        imshow(imcomplement(I2),[]);
-        hold on;
-        plot(xElli,yElli,'r','LineWidth',2);
-        % plot(xSkel, ySkel, '.b', 'MarkerSize',4);
-        hold off;
         
-        f = getframe; % capture screen shot of figure. F = getframe gets a frame from the current axes.
-        overlap = frame2im(f); % return associated image data
+        % f = getframe; % capture screen shot of figure. F = getframe gets a frame from the current axes.
+        % overlap = frame2im(f); % return associated image data
         
-        
+        % Get orientation angle:
+        % Angle (degrees) that major axis of ellipsoid makes with x axis,
+        % ranging from -90 to 90 degrees:
+        angleDeg = conn_regions_props.Orientation;
+        % The angle will be converted to positive and cyclic later on after
+        % tracking, comparing value of angle in previous frames.
+                
         %% Output of the function:
         % The output is a structure "particle_result" with the following fields:
         particle_result.estimateXcentre = x_estimate; % x-centre estimate input.
         particle_result.estimateYcentre = y_estimate; % y-centre estimate input.
         particle_result.Xcom = foundXcentre + (round(x_estimate)-d); % x centre-of-mass position within entire frame.
         particle_result.Ycom = foundYcentre + (round(y_estimate)-d); % y centre-of-mass position within entire frame.
-        particle_result.AngleDegrees = conn_regions_props.Orientation;
+        particle_result.AngleDegrees = angleDeg;  
         particle_result.majorAxisLength = conn_regions_props.MajorAxisLength;
         particle_result.minorAxisLength = conn_regions_props.MinorAxisLength;
         particle_result.ClipFlag = clipping_flag; % 1 if candidate was closer to edge of image than inner_radius.
@@ -257,19 +264,43 @@ else
         % -----------------------------------------------------------------------
         % % Auxiliary stuff below:
         % % Plot results:
-        % figure
-        % subplot(1,2,1)
-        % imshow(frame,[]);
-        % hold;
-        % plot(foundXcentre,foundYcentre,'o','Color','r','MarkerSize',5); title('obtained centre')
-        % hold off;
-        % % plot subarray as well:
-        % subplot(1,2,2)
-        % imshow(I2,[]);
-        % hold;
-        % plot(x_new-round(x_estimate)+d+1,y_new-round(y_estimate)+d+1,'o','Color','r','MarkerSize',70); title('obtained centre')
-        % hold off;
+        figure;
+        subplot(1,2,1)
+        imshow(frame,[]);
+        hold;
+        plot(foundXcentre + (round(x_estimate)-d),foundYcentre + (round(y_estimate)-d),'o','Color','g','MarkerSize',5); 
+        title('whole frame, cho')
+        hold off;
+        % plot subarray as well:
+        subplot(1,2,2)
+        imshow(I2,[]);
+        hold on;
+        plot(foundXcentre,foundYcentre,'x','Color','g','MarkerSize',7); 
+        title('obtained centre')
+        % Plot overlap of results on frame:
+        plot(xpoints_ellipse,ypoints_ellipse,'y','LineWidth',1);
+        plot(xpoints_majorAxis,ypoints_majorAxis,'y','LineWidth',1);
+        % plot(xSkel, ySkel, '.b', 'MarkerSize',4);
+        hold off;
         
+    else
+        particle_result.estimateXcentre = x_estimate; % x-centre estimate input.
+        particle_result.estimateYcentre = y_estimate; % y-centre estimate input.
+        particle_result.Xcom = []; % x centre-of-mass position within entire frame.
+        particle_result.Ycom = []; % y centre-of-mass position within entire frame.
+        particle_result.AngleDegrees = [];
+        particle_result.majorAxisLength = [];
+        particle_result.minorAxisLength = [];
+        particle_result.ClipFlag = clipping_flag; % 1 if candidate was closer to edge of image than inner_radius.
+        particle_result.TooCloseToEdge = tooCloseToEdge; % 1 if bead candidate was closer to edge of image than d_min.
+        % % Plot results:
+        figure;
+        subplot(1,2,1)
+        imshow(frame,[]);
+        % plot subarray as well:
+        subplot(1,2,2)
+        imshow(I2,[]);
+
         
     end
 end

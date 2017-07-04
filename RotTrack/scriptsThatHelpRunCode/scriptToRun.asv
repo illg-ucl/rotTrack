@@ -66,11 +66,8 @@ image_label = '5mT-1Hz';
 % linkTrajSegmentsBeads.m. Find these functions and tweak these parameters
 % on the PARAMETERS section at the beginning of each .m file. 
 % The key parameters in FindTrajectsBeads.m are:
-% - subarray_halfwidth (Default: 25 pixels). Halfwidth of image square subarray which includes bead and background around it.
-% - inner_circle_radius (Default: 20 pixels); Radius of circular mask that contains the entire bead. 
-% For eliminating coincident positions:
-% - d_coincid_cand = 10; % distance (in pixels) for eliminating coincidences in particle-position candidates. Default: 3 pixels.
-% - d_coincid_found = 3; % distance for eliminating coincidences in found particle centres.
+% - subarray_halfwidth (Default: 60 pixels). Halfwidth of image square subarray which includes bead and background around it.
+% - inner_circle_radius (Default: 50 pixels); Radius of circular mask that contains the entire bead. 
 % - d_01_max (Default: 30 pixels); Max distance in pixels between bead
 % centres in one frame and the next one, so that they can be linked into a
 % trajectory. This depends on the bead size on the image, the frame rate
@@ -90,29 +87,15 @@ image_label = '5mT-1Hz';
 % The remaining parameters can be left as they are. All parameters are
 % saved in separate tabs to the excel file ending in "fullTrajs.xls".
 
-% - 6a. Find trajectories and output them to one excel file in the current
+% - 6. Find trajectories and output them to one excel file in the current
 % directory.
-% Use function: 
-% particle_results = FindTrajectsParticles(image_label,start_frame,end_frame,excludedRegions)
-% For the input excludedRegions, used to to exclude certain regions from
-% image, follow the example below.
-% Regions to exclude are given by start coordinates (x_start, y_start) for
-% top left corner of rectangle on image and end coordinates (x_end, y_end)
-% for bottom right corner of rectangle. Coordinates delimit rectangular
-% boxes on image and several rectangles can be defined. All rectangles are
-% put together in structure input excludedRegions:
-% Example, for Sonia's images we exclude the following regions:
-excludedRegions.list_xstart = [1 1 1 130];
-excludedRegions.list_xend = [820 112 100 215];
-excludedRegions.list_ystart = [581 492 1 1];
-excludedRegions.list_yend = [614 580 175 54];
-% Then run:
-t1 = FindTrajectsParticles(image_label,1,78,excludedRegions);
-
-% - 6b. Link trajectory segments found into longer trajectories:
+% Use functions: 
+% bead_results = FindTrajectsBeads(image_label,start_frame,end_frame)
+% and
 % linkTrajSegmentsBeads(image_label,start_frame,end_frame,bead_results,data_set_label).
 % E.g., for frames 1 to 117 in video "210217r25.tif" in the current directory:
-linkTrajSegmentsParticles(image_label,1,117,t25,'tests'); 
+t25 = FindTrajectsBeads(image_label,1,117);
+linkTrajSegmentsBeads(image_label,1,117,t25,'tests'); 
 % The above two lines generate an Excel file with all the trajectory data,
 % "tests_25_fullTrajs.xls", in the current directory folder, for further
 % analysis. This file contains two tabs with the parameters used in the
