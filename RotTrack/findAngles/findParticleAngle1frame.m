@@ -111,10 +111,19 @@ end
 if d < d_min
     % Error control: return empty result structure as outuput if particle-centre candidate is closer
     % to edge than d_min:
-    tooCloseToEdge = 1;
+    tooCloseToEdge = 1;    
     
-    particle_result.estimateXcentre = []; % x-centre estimate input.
-    particle_result.estimateYcentre = []; % y-centre estimate input.
+    particle_result.estimateXcentre = x_estimate; % x-centre estimate input.
+    particle_result.estimateYcentre = y_estimate; % y-centre estimate input.
+    particle_result.Xcom = []; % x centre-of-mass position within entire frame.
+    particle_result.Ycom = []; % y centre-of-mass position within entire frame.
+    particle_result.AngleDegrees = [];
+    particle_result.xpoints_ellipse = [];
+    particle_result.ypoints_ellipse = [];
+    particle_result.xpoints_majorAxis = [];
+    particle_result.ypoints_majorAxis = [];
+    particle_result.majorAxisLength = [];
+    particle_result.minorAxisLength = [];
     particle_result.ClipFlag = clipping_flag; % 1 if candidate was closer to edge of image than inner_radius.
     particle_result.TooCloseToEdge = tooCloseToEdge; % 1 if particle candidate was closer to edge of image than d_min.
    
@@ -287,12 +296,16 @@ else
 %         % plot(xSkel, ySkel, '.b', 'MarkerSize',4);
 %         hold off;
         
-    else
+    else % if no connected regions (no darker particle) found:
         particle_result.estimateXcentre = x_estimate; % x-centre estimate input.
         particle_result.estimateYcentre = y_estimate; % y-centre estimate input.
         particle_result.Xcom = []; % x centre-of-mass position within entire frame.
         particle_result.Ycom = []; % y centre-of-mass position within entire frame.
         particle_result.AngleDegrees = [];
+        particle_result.xpoints_ellipse = []; 
+        particle_result.ypoints_ellipse = [];
+        particle_result.xpoints_majorAxis = [];
+        particle_result.ypoints_majorAxis = [];
         particle_result.majorAxisLength = [];
         particle_result.minorAxisLength = [];
         particle_result.ClipFlag = clipping_flag; % 1 if candidate was closer to edge of image than inner_radius.

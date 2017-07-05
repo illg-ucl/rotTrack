@@ -30,7 +30,10 @@ function particle_results = FindTrajectsParticles(image_label,start_frame,end_fr
 % file name of the image sequence to be analysed, which is in the current folder.
 % - start_frame: first frame of the sequence to be analysed.
 % - end_frame: last frame of the sequence to be analysed.
-% - excludedRegions: to exclude certain regions from image.
+% - excludedRegions: to exclude certain regions from image. 
+% Enter [] (so that isempty(excludedRegions) = 1) if you
+% don't want to exclude any regions.
+% Input a structure as follows to exclude one or several regions.
 % Regions to exclude are given by start coordinates (x_start, y_start) for
 % top left corner of rectangle on image and end coordinates (x_end, y_end)
 % for bottom right corner of rectangle. Coordinates delimit rectangular
@@ -78,10 +81,10 @@ function particle_results = FindTrajectsParticles(image_label,start_frame,end_fr
 % The second element in the cell array, particle_results{2}, contains the track
 % results: "particle_final".
 % "particle_final", is itself a structure array with end_frame by L elements,
-% each of which is a structure with fields: CentreX, CentreY, ClipFlag, TooCloseToEdge, FrameNumber and SpotNumber.
+% each of which is a structure with fields: CentreX, CentreY, ClipFlag, TooCloseToEdge, FrameNumber and ParticleNumber.
 % Along the dimension L, we have the different particle centres found on each
 % frame (L will usually be the number of particle centres found in frame_start,
-% or the largest number of spots ever accepted).
+% or the largest number of particles ever accepted).
 % For example, particle_final(100,8) is a structure with the above fields
 % corresponding to the eighth found particle centre on frame 100.
 %
@@ -105,15 +108,24 @@ function particle_results = FindTrajectsParticles(image_label,start_frame,end_fr
 %             frame_Xsize: 1280
 %
 % particle_results1{2} is a struct array with fields:
-%     CentreX
-%     CentreY
-%     ClipFlag
-%     TooCloseToEdge
-%     rsqFitX
-%     rsqFitY
-%     FrameNumber
-%     particleNumber
-%     TrajNumber
+%     'estimateXcentre'
+%     'estimateYcentre'
+%     'Xcom' % centre of mass
+%     'Ycom'
+%     'AngleDegrees'
+%     'xpoints_ellipse'
+%     'ypoints_ellipse'
+%     'xpoints_majorAxis'
+%     'ypoints_majorAxis'
+%     'majorAxisLength'
+%     'minorAxisLength'
+%     'ClipFlag'
+%     'TooCloseToEdge' 
+%     'TrajNumber'
+%     'FrameNumber'
+%     'ParticleNumber'
+% 
+% See also end of function for more info on OUTPUT format.
 
 
 %% DEFINITIONS and PARAMETERS:
@@ -159,8 +171,8 @@ params.inner_circle_radius = inner_circle_radius;
 d_coincid_cand = 10; % distance (in pixels) for eliminating coincidences in particle-position candidates. Default: 3 pixels.
 d_coincid_found = 3; % distance for eliminating coincidences in found particle centres.
 % Save parameters to results as structure "params":
-params.d_coincid_cand = d_coincid_cand; % distance for eliminating coincidences in spot candidates.
-params.d_coincid_found = d_coincid_found; % distance for eliminating coincidences in found spot centres.
+params.d_coincid_cand = d_coincid_cand; % distance for eliminating coincidences in particle candidates.
+params.d_coincid_found = d_coincid_found; % distance for eliminating coincidences in found particle centres.
 
 % PARAMETERS for building trajectories:
 % For linking particle centres in current and previous frames:
@@ -186,8 +198,8 @@ params.rej = rej; % Save parameters to results as structure "params".
 % strcat('analysis file (.xls trajectory):','  ',path_analysis,file_analysis)
 % 
 % disp(' ') % empty line
-% disp(['The start frame for finding bright spot trajectories will be ',num2str(start_frame)]) % start_frame is an input.
-% disp(['The end frame for finding bright spot trajectories will be ',num2str(end_frame)]) % end_frame is an input.
+% disp(['The start frame for finding bright particle trajectories will be ',num2str(start_frame)]) % start_frame is an input.
+% disp(['The end frame for finding bright particle trajectories will be ',num2str(end_frame)]) % end_frame is an input.
 % -----------------------------------------------------
 
 
@@ -227,7 +239,7 @@ disp(['frame number: ',num2str(start_frame)]) % print frame number to Command Wi
 disp(['no. of initial particle candidate positions: ',num2str(length(candidate_X_000))])
 
 % Error control:
-% Limit the max number of candidate spots (if eg. 260000 candidate spots are
+% Limit the max number of candidate particles (if eg. 260000 candidate particles are
 % found, we will get an error in function pdist: "Distance matrix has more
 % elements than the maximum allowed size in MATLAB").
 % Select only the first max_num_candidates then.
@@ -249,11 +261,16 @@ end
 disp(['no. of total candidate particle positions after eliminating coincidences: ',num2str(length(candidate_X_00))])
 
 % Exclude certain regions from image (see INPUT excludedRegions):
-list_xstart = excludedRegions.list_xstart;
-list_xend = excludedRegions.list_xend;
-list_ystart = excludedRegions.list_ystart;
-list_yend = excludedRegions.list_yend;
-[candidate_X_0,candidate_Y_0] = excludeRegions(candidate_X_00,candidate_Y_00,list_xstart,list_xend,list_ystart,list_yend);
+if isempty(excludedRegions) == 1 % do not exclude any regions of image
+    candidate_X_0 = candidate_X_00;
+    candidate_Y_0 = candidate_Y_00;
+else
+    list_xstart = excludedRegions.list_xstart;
+    list_xend = excludedRegions.list_xend;
+    list_ystart = excludedRegions.list_ystart;
+    list_yend = excludedRegions.list_yend;
+    [candidate_X_0,candidate_Y_0] = excludeRegions(candidate_X_00,candidate_Y_00,list_xstart,list_xend,list_ystart,list_yend);
+end
 
 disp(['no. of total candidate particle positions after excluding certain regions (as input)): ',num2str(length(candidate_X_0))])
 
@@ -268,9 +285,8 @@ n =1; % Initialise index n (index for accepted particle centre positions):
 
 % Find particle centres (centre of mass) and angles:
 for m = 1:size(candidate_X_0,1) % loop through all candidate particle positions.
-    % Now find particle centre using function findparticleCentre1frame:
-    % use candidate particle positions as initial estimates and then refine to find particle centre with sub-pixel precision.
-   
+    % Now find particle centre and orientation using function findParticleAngle1frame:
+    % use candidate particle positions as initial estimates and then refine to find particle centre of mass.   
     particle_result = findParticleAngle1frame(frame_to_search,candidate_X_0(m),candidate_Y_0(m),inner_circle_radius,subarray_halfwidth);
     particle_result.FrameNumber = start_frame; % Add new field containing frame number (time) to result structure.
     
@@ -291,18 +307,30 @@ end
 disp(['no. of accepted particle centres in first frame: ',num2str(n-1)])
 
 % Convert results of found particle-centre positions to a useful form :
+
 % Error control: if no particle centres were accepted:
 if (n-1) == 0 
     found_particle_CentreX = [];
     found_particle_CentreY = [];
     % Need to create the whole particle_final structure with all its fields
-    % here, just in case the number of accepted spots in the first frame is
-    % zero, in order not to get error: "Subscripted assignment between
-    % dissimilar structures".
-    % Save empty particle (we need this, otherwise if in the last frame the no. of accepted particles is 0, there will be no result particle_final(end_frame,:) and the following functions will fail).
+    % here (same fields as output from findParticleAngle1frame, plus fields
+    % added in this function), just in case the number of accepted particles in
+    % the first frame is zero, in order not to get error: "Subscripted
+    % assignment between dissimilar structures".
+    % Save empty particle (we need this, otherwise if in the last frame the
+    % no. of accepted particles is 0, there will be no result
+    % particle_final(end_frame,:) and the following functions will fail).
+    particle_final(start_frame,n).estimateXcentre = [];
+    particle_final(start_frame,n).estimateYcentre = [];
     particle_final(start_frame,n).Xcom = [];
     particle_final(start_frame,n).Ycom = [];
-    
+    particle_final(start_frame,n).AngleDegrees = [];
+    particle_final(start_frame,n).xpoints_ellipse = [];
+    particle_final(start_frame,n).ypoints_ellipse = [];
+    particle_final(start_frame,n).xpoints_majorAxis = [];
+    particle_final(start_frame,n).ypoints_majorAxis = [];
+    particle_final(start_frame,n).majorAxisLength = [];
+    particle_final(start_frame,n).minorAxisLength = [];
     particle_final(start_frame,n).ClipFlag = [];
     particle_final(start_frame,n).TooCloseToEdge = []; 
     particle_final(start_frame,n).FrameNumber = [];
@@ -318,22 +346,20 @@ end
 figure;
 imshow(frame,[]);
 hold on;
-plot(found_particle_CentreX,found_particle_CentreY,'x','Color','g','MarkerSize',7) % plot accepted spot centres in green.
-pause(0.1); % this pause is needed to give time for the plot to appear
+plot(found_particle_CentreX,found_particle_CentreY,'x','Color','g','MarkerSize',7) % plot accepted particle centres in green.
 % For plotting 3 points in major axis (as a line):
 for ind = 1:(n-1) % loop through all accepted positions.
     xpoints_majorAxis = particle_final(start_frame,ind).xpoints_majorAxis;
     ypoints_majorAxis = particle_final(start_frame,ind).ypoints_majorAxis;
     plot(xpoints_majorAxis,ypoints_majorAxis,'y','LineWidth',1);
 end
+pause(0.05); % (this pause is needed to give time for the plot to appear.)
 hold off;
 % -----------------------------------------------------------------------
 
 
 
 %% Loop through selected frames:
-
-%CONTINUE CHANGES HERE. ILLG. 4TH jULY 2017.
 
 tr =1; % initialise trajectory index.
 
@@ -350,35 +376,18 @@ for k = (start_frame+1):end_frame
     
     %-------------------------------------
     % Find new candidate particle positions for this frame:      
-    [candidate_X_000,candidate_Y_000] = findCandidateparticlePositions(frame,1); % Second input: use method 1, which seems to work better.
+    [candidate_X_000,candidate_Y_000] = findCandidateParticlePositions(frame,1); % Second input: use method 1, which seems to work better.
     % the subindex "_000" in candidate_X_000 indicates newly found particle
     % candidates for the current frame. 
-    
-    % % Reject candidate spots outside ROI (SignalMask) (to speed up algorithm):
-    % candidate_X_00 = []; % initialise empty vectors before loop.
-    % candidate_Y_00 = [];
-    % for nn = 1:length(candidate_X_000)
-    %    % Only use candidates for which there is a 1 in the SignalMask image:
-    %    if SignalMask(candidate_Y_000(nn),candidate_X_000(nn)) == 1
-    %        candidate_X_00 = [candidate_X_00; candidate_X_000(nn)];
-    %        candidate_Y_00 = [candidate_Y_00; candidate_Y_000(nn)];
-    %    end
-    % end
-    % disp(['no. of new candidate particle positions on start frame: ',num2str(length(candidate_X_00))])
-    %------------------------------------- 
-    
-    % Without using a ROI:
-    candidate_X_00 = candidate_X_000;
-    candidate_Y_00 = candidate_Y_000;
-    
+      
     % Error control:
     % Limit the max number of candidate particle positions (if eg. 260000 candidates are
     % found, we will get an error in function pdist: "Distance matrix has more
     % elements than the maximum allowed size in MATLAB").
     % Select only the first max_num_candidates then.
-    if length(candidate_X_00) > max_num_candidates
-        candidate_X_00 = candidate_X_00(1:max_num_candidates);
-        candidate_Y_00 = candidate_Y_00(1:max_num_candidates);
+    if length(candidate_X_000) > max_num_candidates
+        candidate_X_000 = candidate_X_000(1:max_num_candidates);
+        candidate_Y_000 = candidate_Y_000(1:max_num_candidates);
         disp(['NOTE!! no. of candidate particle positions has been limited to ',num2str(max_num_candidates)])
     end
     
@@ -388,39 +397,46 @@ for k = (start_frame+1):end_frame
     % plot(candidate_X_0,candidate_Y_0,'*');
     % figure;
     
-    disp(['no. of initial particle candidate positions: ',num2str(length(candidate_X_00))])
+    disp(['no. of initial particle candidate positions: ',num2str(length(candidate_X_000))])
     
     % Eliminate candidate positions closer to each other than d_coincid_cand (3 pixels):
-    [candidate_X_0,candidate_Y_0,pos_to_keep1] = eliminateCoincidentPositions(candidate_X_00,candidate_Y_00,d_coincid_cand);
+    [candidate_X_00,candidate_Y_00,pos_to_keep1] = eliminateCoincidentPositions(candidate_X_000,candidate_Y_000,d_coincid_cand);
     
-    disp(['no. of total candidate particle positions after eliminating coincidences: ',num2str(length(candidate_X_0))])
+    disp(['no. of total candidate particle positions after eliminating coincidences: ',num2str(length(candidate_X_00))])
+          
+    % Exclude certain regions from image (see INPUT excludedRegions):
+    if isempty(excludedRegions) == 1 % do not exclude any regions of image
+        candidate_X_0 = candidate_X_00;
+        candidate_Y_0 = candidate_Y_00;
+    else
+        [candidate_X_0,candidate_Y_0] = excludeRegions(candidate_X_00,candidate_Y_00,list_xstart,list_xend,list_ystart,list_yend);
+    end    
+    disp(['no. of total candidate particle positions after excluding certain regions (as input)): ',num2str(length(candidate_X_0))])
     
-    % Subtract background from entire frame (method 1 is faster) considering particle candidate positions:
-    frameNoBgnd = removeBgnd(frame,candidate_X_0,candidate_Y_0,inner_circle_radius,subarray_halfwidth,1);
-
-    % Find particle centres and decide if we accept them or not:
+    % No need to do background subtraction.
+    % % Subtract background from entire frame (method 1 is faster) considering particle candidate positions:
+    % % frameNoBgnd = removeBgnd(frame,candidate_X_0,candidate_Y_0,inner_circle_radius,subarray_halfwidth,1);
+    % % frame_to_search = frameNoBgnd; % Initialise frame to search for particle centres.
+    frame_to_search = frame; % Initialise frame to search for particle centres.
+    
+    % Find particle centre of mass and angles and decide if we accept them or not:
     n =1; % Initialise index n (index for accepted particle centre positions):
-    frame_to_search = frameNoBgnd; % Initialise frame to search for particle centres.
-
-    % Find particle centres with sub-pixel precision:
+    
     for m = 1:size(candidate_X_0,1) % loop through all candidate particle positions.
-        % Now find particle centre using function findparticleCentre1frame:
-        % use candidate particle positions as initial estimates and then refine to find particle centre with sub-pixel precision.
-        
-        particle_result = findparticleCentre1frame(frame_to_search,candidate_X_0(m),candidate_Y_0(m),inner_circle_radius,subarray_halfwidth);              
-        % index k is for frame number, index m is for spot number
+        % Now find particle centre and orientation using function findParticleAngle1frame:
+        % use candidate particle positions as initial estimates and then refine to find particle centre of mass.        
+        particle_result = findParticleAngle1frame(frame_to_search,candidate_X_0(m),candidate_Y_0(m),inner_circle_radius,subarray_halfwidth);              
+        % index k is for frame number, index m is for particle number
         particle_result.FrameNumber = k; % Add new field containing frame number (time) to result structure.
         
         % Accepted particle centres:
         % if (particle_result.ClipFlag == 0 && ... % to exclude particles close to edge
         if (particle_result.ClipFlag < 2 && ... % use this to accept all particles;
-                particle_result.TooCloseToEdge == 0 && ...
-                particle_result.rsqFitX >= rsq_min && ...
-                particle_result.rsqFitY >= rsq_min)
+                particle_result.TooCloseToEdge == 0)
             % Only accept and save result of found particle centre if clipping flag = 0 and if values of rsquare of fits are acceptable.
             
             particle(k,n) = particle_result; % store accepted found particle centres in this preliminary result.
-            % first index is for frame number, second index is for spot number.
+            % first index is for frame number, second index is for particle number.
             %    %--------------------------------------------------
             %    plot(particle(k,n).Xcom,particle(k,n).Ycom,'o','Color','r','MarkerSize',10); % Plot found particle centres in red
             %    %--------------------------------------------------
@@ -438,7 +454,8 @@ for k = (start_frame+1):end_frame
     %    hold off;
     
     % Convert results of found particle-centre positions to a useful form:
-    if (n-1) == 0 % error control: if no spots were accepted.
+    
+    if (n-1) == 0 % Error control: if no particles were accepted.
         found_particle_CentreX = [];
         found_particle_CentreY = [];
         particle_final(k,n).ParticleNumber = []; % Save empty particle (we need this, otherwise if in the last frame the no. of accepted particles is 0, there will be no result particle_final(end_frame,:) and the following functions will fail).
@@ -454,49 +471,53 @@ for k = (start_frame+1):end_frame
         %-------------------------------
         
         % Save final particle centres to variable particle_final:
-        n=1; % index for final kept spot.
+        n=1; % index for final kept particles.
         for ii = 1:length(pos_final)
             mientras = particle(k,pos_final(ii)); % intermediate result.
-            mientras.ParticleNumber = n; % Add new field containing spot number to result structure.
+            mientras.ParticleNumber = n; % Add new field containing particle number to result structure.
             if k > (start_frame+1)
                 mientras.TrajNumber = []; % to avoid error of disimilar structures
             end
-            particle_final(k,n)=mientras; % final result structure of accepted spot centres.
+            particle_final(k,n)=mientras; % final result structure of accepted particle centres.
             n = n+1;
         end
-        % Plot found spot centres:
+        % Plot found particle centres:
         pause(0.5);
-        plot(found_particle_CentreX,found_particle_CentreY,'o','Color','g','MarkerSize',10) % plot final accepted spot centres in green.
-        pause(0.1); % this pause is needed to give time for the plot to appear
+        plot(found_particle_CentreX,found_particle_CentreY,'x','Color','g','MarkerSize',7) % plot final accepted particle centres as green cross.
+        % pause(0.1); % this pause is needed to give time for the plot to appear
+        % For plotting 3 points in major axis (as a line):
+        for ind = 1:(n-1) % loop through all accepted positions.
+            xpoints_majorAxis = particle_final(k,ind).xpoints_majorAxis;
+            ypoints_majorAxis = particle_final(k,ind).ypoints_majorAxis;
+            plot(xpoints_majorAxis,ypoints_majorAxis,'y','LineWidth',1);
+        end
+        pause(0.05); % this pause is needed to give time for the plot to appear
         hold off;
         
         disp(['no. of final found particle centres after eliminating coincidences: ',num2str(length(found_particle_CentreX))])
     end
+     
     
+%% --------------------
+    % LINKING PARTICLE POSITIONS INTO TRAJECTORY SEGMENTS:
     
-    
-    %--------------------
-    % LINKING SPOTS INTO TRAJECTORY SEGMENTS:
-    
-    % Link found and accepted spots into trajectory segments:
+    % Link found and accepted particle positions into trajectory segments:
     
     % Trajectory index tr is initialised to 1 outside the loop through frames (k loop).
     
-    % Do differently FOR SECOND FRAME (k == start_frame+1): compare only accepted spots in
+    % Do differently FOR SECOND FRAME (k == start_frame+1): compare only accepted particles in
     % previous and current frames:
     if k == start_frame+1 && ... % If second frame and
-            (n-1)~=0 && ... % if the number of accepted spot centres is not zero and
-            isempty([particle_final(k-1,:).ParticleNumber])==0 && ... % at least 1 accepted spot in previous frame and
-            isempty([particle_final(k,:).ParticleNumber])==0 % at least 1 accepted spot in current frame.
-        % There are no trajectories jet, so compare accepted spots in previous and current frames:
-        N0 = max(cat(1,particle_final(k-1,:).ParticleNumber));  % no. of accepted spots in previous frame.
-        % Note: cat(1,particle_final(k-1,:).ParticleNumber) gives a column vector with the values of SpotNumber for all non-empty accepted spots in frame k-1.
-        N1 = max(cat(1,particle_final(k,:).ParticleNumber));  % no. of accepted spots in current frame.
+            (n-1)~=0 && ... % if the number of accepted particle centres is not zero and
+            isempty([particle_final(k-1,:).ParticleNumber])==0 && ... % at least 1 accepted particle in previous frame and
+            isempty([particle_final(k,:).ParticleNumber])==0 % at least 1 accepted particle in current frame.
+        % There are no trajectories jet, so compare accepted particles in previous and current frames:
+        N0 = max(cat(1,particle_final(k-1,:).ParticleNumber));  % no. of accepted particles in previous frame.
+        % Note: cat(1,particle_final(k-1,:).ParticleNumber) gives a column vector with the values of particleNumber for all non-empty accepted particles in frame k-1.
+        N1 = max(cat(1,particle_final(k,:).ParticleNumber));  % no. of accepted particles in current frame.
         
         % Create cell arrays with empty elements to pre-asign sizes:
         d01 = cell(N0,N1); % Note: d01 is a cell array (matrix) but d_01 below is a scalar.
-        Iratio01 = cell(N0,N1); % Note: Iratio01 is a cell array (matrix) but Iratio_01 below is a scalar.
-        SigmaRatio01 = cell(N0,N1); % Note: SigmaRatio01 is a cell array (matrix) but SigmaRatio_01 below is a scalar.
         
         for q0 = 1:N0 % loop though accepted particle centres in previous frame.
             for q1 = 1:N1 % loop though accepted particle centres in current frame.
@@ -532,7 +553,7 @@ for k = (start_frame+1):end_frame
                 
                 % Decide of all possible accepted particle centres (in current frame)
                 % that could be linked to particle centre q0 in previous frame, which one is the best:
-                % We take the best as the closest one to spot q0:
+                % We take the best as the closest one to particle q0:
                 q1_chosen = find([d01{q0,:}] == min([d01{q0,:}])); % find position of the minimum pair-wise distance.
                 
 %                             q1_chosen
@@ -601,7 +622,7 @@ for k = (start_frame+1):end_frame
                     
                     % Note that if all asignments in previous step are rejected,
                     % [d02{q0,:}] will be a list of rej values, and its minimum will be rej.
-                    % If list of "linkable" spots, [d02{q0,:}], has no accepted asignments (all values are rej):
+                    % If list of "linkable" particles, [d02{q0,:}], has no accepted asignments (all values are rej):
                     if min([d02{q0,:}]) == rej
                         % Asign trajectory number 0 to the particle centre two frames ago only:
                         particle_final(k-2,q0).TrajNumber = 0; % point stays loose (unlinked).
@@ -655,7 +676,7 @@ for k = (start_frame+1):end_frame
             
             for q0 = 1:N0 % loop though accepted particle centres in previous frame.
                 for q1 = 1:N1 % loop though accepted particle centres in current frame.
-                    % d_01: distance between spot centres in previous and current frames:
+                    % d_01: distance between particle centres in previous and current frames:
                     d_01 = sqrt((particle_final(k-1,q0).Xcom-particle_final(k,q1).Xcom)^2+(particle_final(k-1,q0).Ycom-particle_final(k,q1).Ycom)^2);
                      
                     %                     d_01
@@ -678,7 +699,7 @@ for k = (start_frame+1):end_frame
                 % Note that if all asignments in previous step are rejected,
                 % [d01{q0,:}] will be a list of rej values, and its minimum will
                 % be rej.
-                % If list of "linkable" spots, [d01{q0,:}], has no accepted
+                % If list of "linkable" particles, [d01{q0,:}], has no accepted
                 % asignments (all values are rej):
                 if min([d01{q0,:}]) == rej
                     
@@ -691,7 +712,7 @@ for k = (start_frame+1):end_frame
                     
                     % Decide of all possible accepted/saved particle centres (in current frame)
                     % that could be linked to particle centre q0 in previous frame, which one is the best:
-                    % We take the best as the closest one to spot q0:
+                    % We take the best as the closest one to particle q0:
                     q1_chosen = find([d01{q0,:}] == min([d01{q0,:}])); % find position of the minimum pair-wise distance.
                     
 %                                     q1_chosen
@@ -734,25 +755,33 @@ end  % loop through selected frames
 
 
 
-%% OUTPUT OF SPOT-FINDING PROCESS: final output particle_results:
+%% OUTPUT OF particle-FINDING PROCESS: final output particle_results:
 %
 particle_results = {params, particle_final};
 % params is a structure array containing all parameters used to run the
 % function.
 % particle_final, is a structure array with end_frame x L elements,
 % each of which is a structure with fields:
-%     'CentreX'
-%     'CentreY'
-%     'rsqFit'
+%     'estimateXcentre'
+%     'estimateYcentre'
+%     'Xcom' % centre of mass
+%     'Ycom'
+%     'AngleDegrees'
+%     'xpoints_ellipse'
+%     'ypoints_ellipse'
+%     'xpoints_majorAxis'
+%     'ypoints_majorAxis'
+%     'majorAxisLength'
+%     'minorAxisLength'
 %     'ClipFlag'
 %     'TooCloseToEdge' 
 %     'TrajNumber'
 %     'FrameNumber'
-%     'SpotNumber'
-%
+%     'ParticleNumber'
+%  
 % Along the dimension L, we have the different particle centres found on each
 % frame (L will often be the number of particle centres found in frame_start,
-% it is always the largest number of spots ever accepted on one frame).
+% it is always the largest number of particles ever accepted on one frame).
 % For example, particle_final(100,8) is a structure with the above fields
 % corresponding to the eighth found particle centre on frame 100.
 %

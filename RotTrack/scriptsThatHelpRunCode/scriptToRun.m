@@ -62,26 +62,26 @@ image_label = '5mT-1Hz';
 % number of frames on the image sequence, the file path and frame size.
 %
 % - 5. PARAMETERS: There are a number of important parameters that need to be set right.
-% These are within functions FindTrajectsBeads.m and
-% linkTrajSegmentsBeads.m. Find these functions and tweak these parameters
+% These are within functions FindTrajectsParticles.m and
+% linkTrajSegmentsParticles.m. Find these functions and tweak these parameters
 % on the PARAMETERS section at the beginning of each .m file. 
-% The key parameters in FindTrajectsBeads.m are:
-% - subarray_halfwidth (Default: 25 pixels). Halfwidth of image square subarray which includes bead and background around it.
-% - inner_circle_radius (Default: 20 pixels); Radius of circular mask that contains the entire bead. 
+% The key parameters in FindTrajectsParticles.m are:
+% - subarray_halfwidth (Default: 25 pixels). Halfwidth of image square subarray which includes particle and background around it.
+% - inner_circle_radius (Default: 20 pixels); Radius of circular mask that contains the entire particle. 
 % For eliminating coincident positions:
 % - d_coincid_cand = 10; % distance (in pixels) for eliminating coincidences in particle-position candidates. Default: 3 pixels.
 % - d_coincid_found = 3; % distance for eliminating coincidences in found particle centres.
-% - d_01_max (Default: 30 pixels); Max distance in pixels between bead
+% - d_01_max (Default: 30 pixels); Max distance in pixels between particle
 % centres in one frame and the next one, so that they can be linked into a
-% trajectory. This depends on the bead size on the image, the frame rate
-% and how much beads move between frames. Tweak to match experimental
+% trajectory. This depends on the particle size on the image, the frame rate
+% and how much particles move between frames. Tweak to match experimental
 % conditions.
 % - d_02_max (Default: 30 pix). Similar to above but for linking one frame
 % and two frames later.
-% The key parameters in linkTrajSegmentsBeads are:
-% - d_01_max (Default: 30 pixels); Max distance in pixels between bead
+% The key parameters in linkTrajSegmentsParticles are:
+% - d_01_max (Default: 30 pixels); Max distance in pixels between particle
 % centres for linking different trajectory segments, i.e., for linking end
-% bead position in one trajectory with start bead position in another trajectory.
+% particle position in one trajectory with start particle position in another trajectory.
 % - Frames_away_max (Default: 5 pix); Max separation in frames (i.e., prop
 % to time) for trajectory segments to be linked. Write 1 if you want no
 % jumps (no frame jumps) in the segment linking. 
@@ -108,42 +108,40 @@ excludedRegions.list_ystart = [581 492 1 1];
 excludedRegions.list_yend = [614 580 175 54];
 % Then run:
 t1 = FindTrajectsParticles(image_label,1,78,excludedRegions);
+% Save all result structures in a .mat file:
+save 'resultStructures' 't*' 
 
 % - 6b. Link trajectory segments found into longer trajectories:
-% linkTrajSegmentsBeads(image_label,start_frame,end_frame,bead_results,data_set_label).
+% linkTrajSegmentsParticles(image_label,start_frame,end_frame,particle_results,data_set_label).
 % E.g., for frames 1 to 117 in video "210217r25.tif" in the current directory:
-linkTrajSegmentsParticles(image_label,1,117,t25,'tests'); 
-% The above two lines generate an Excel file with all the trajectory data,
+% linkTrajSegmentsParticles(image_label,1,117,t25,'tests'); 
+% This generates an Excel file with all the trajectory data,
 % "tests_25_fullTrajs.xls", in the current directory folder, for further
 % analysis. This file contains two tabs with the parameters used in the
 % analysis and another tab with the trajectory data. The key columns are
-% CentreX, CentreY (x and y bead-centre positions in pixels) and
+% Xcom, Ycom (x and y particle centre-of-mass positions in pixels) and
 % TrajNumber, the Trajectory Number.
 % Note: make sure that the start_frame and end_frame values are kept the
-% same throughout all functions.
-
-save 'resultStructures' 't*' % save all result structures in a .mat file.
+% same throughout all functions ran in steps 6a and 6b.
+linkTrajSegmentsParticles(image_label,1,78,t1,'test');
 
 % - 7. Plot and save a .png image of the Trajectory Numbers for the found
-% beads overlaid on top of first frame of the video.
-% Use function  plotBeadTrajNumbers(image_label,minPointsTraj).
+% particless overlaid on top of first frame of the video.
+% Use function  plotParticleTrajNumbers(image_label,minPointsTraj).
 % Input "minPointsTraj" (Default: 10) is the minimum number of points in a trajectory for
 % it to be considered (we don't want to analyse tracks with only a few
-% points that might appear due to suboptimal tracking when two beads are
+% points that might appear due to suboptimal tracking when two particles are
 % very close together):
-plotBeadTrajNumbers(image_label,10)
+plotParticleTrajNumbers(image_label,10)
 
-% Note: the code does not work optimally for beads that are close together
-% and have overlapping diffraction rings. For these, we will have a low
-% r-squared of the parabolic fits to the cross-correlation peak for finding
-% the bead centre with sub-pixel precision, so they will be excluded from
-% the final results. 
+% Note: the code does not work optimally for particles that are close together
+% and have overlapping diffraction rings, or when there is a very uneven background. 
 
 % - 8. Select good tracks. Two alternative methods:
 % - 8a) Inspect tracks manually on a video to decide which to accept as good:
 % Use function:
-% good_tracks = goThroughBeadTracksVideo(image_label,n_traj_start,n_traj_end,minPointsTraj)
-goThroughBeadTracksVideo(image_label,1,'end',10); 
+% good_tracks = goThroughParticleTracksVideo(image_label,n_traj_start,n_traj_end,minPointsTraj)
+good_tracks = goThroughParticleTracksVideo(image_label,1,'end',10); 
 % The above generates the structure (after visually excluding tracks 4 and 5):  
 % good_tracks = 
 %            image_label: '25'
@@ -155,12 +153,11 @@ goThroughBeadTracksVideo(image_label,1,'end',10);
 % - 8b) Note, that doing the above is quite slow, particularly for long tracks
 % over long videos. So the alternative is to inspect a few tracks as in 8a),
 % make a note of the total number of long-enough tracks (printed on the
-% command window during the analysis using goThroughBeadTracksVideo), then
+% command window during the analysis using goThroughParticleTracksVideo), then
 % press Control+C to cancel the function evaluation (will generate no output), and 
 % then generate the structure good_tracks2 by hand.
-% Exclude bead numbers for beads that are close to each other with
-% overlapping diffraction rings just by looking at the png image
-% generated in step 7.
+% Exclude particle numbers for particles that are close to each other just
+% by looking at the png image generated in step 7.
 % E.g., to generate by hand, do:
 good_tracks.image_label = image_label;
 good_tracks.n_traj_start = 1;
@@ -172,11 +169,11 @@ output_filename = strcat('good_track_nums_',image_label);
 save(output_filename,'good_tracks') % save variable good_tracks2.
 
 % - 9. Analyse each track separatedly.
-% This is based on functions showBeadTrajAnalysis.m and
-% showManyBeadTrajAnalysis.m
+% This is based on functions showParticleTrajAnalysis.m and
+% showManyParticleTrajAnalysis.m
 % Running the line below produces one analysis excel file and graph per track:
-% processedManyTrajs = showManyBeadTrajAnalysis(image_label,n_traj_start,n_traj_end,start_frame,tsamp,pixelsize_nm,showVideo,minPointsTraj)
-showManyBeadTrajAnalysis('25',1,'end',1,1,100,0,10);
+% processedManyTrajs = showManyParticleTrajAnalysis(image_label,n_traj_start,n_traj_end,start_frame,tsamp,pixelsize_nm,showVideo,minPointsTraj)
+showManyParticleTrajAnalysis('25',1,'end',1,1,100,0,10);
 
 
 
