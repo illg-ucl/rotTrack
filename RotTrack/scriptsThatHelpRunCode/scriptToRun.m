@@ -143,14 +143,14 @@ cd(data_folder); % return to data folder.
 % - 8a) Inspect tracks manually on a video to decide which to accept as good:
 % Use function:
 % good_tracks = goThroughParticleTracksVideo(image_label,n_traj_start,n_traj_end,minPointsTraj)
-good_tracks = goThroughParticleTracksVideo(image_label,1,'end',10); 
-% The above generates the structure (after visually excluding tracks 4 and 5):  
-% good_tracks = 
-%            image_label: '25'
+good_tracks1 = goThroughParticleTracksVideo(image_label,1,'end',6); 
+% The above generates the structure:  
+% good_tracks1 = 
+%            image_label: '5mT-1Hz'
 %           n_traj_start: 1
-%             n_traj_end: 26
-%          minPointsTraj: 10
-%     good_track_numbers: [1 2 3 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26]
+%             n_traj_end: 36
+%          minPointsTraj: 6
+%     good_track_numbers: [5 7 8 12]
 %
 % - 8b) Note, that doing the above is quite slow, particularly for long tracks
 % over long videos. So the alternative is to inspect a few tracks as in 8a),
@@ -161,14 +161,14 @@ good_tracks = goThroughParticleTracksVideo(image_label,1,'end',10);
 % Exclude particle numbers for particles that are close to each other just
 % by looking at the png image generated in step 7.
 % E.g., to generate by hand, do:
-good_tracks.image_label = image_label;
-good_tracks.n_traj_start = 1;
-good_tracks.n_traj_end = 26;
-good_tracks.minPointsTraj = 10;
-good_tracks.good_track_numbers = [1:3 6:26]; % All tracks from 1 to 26 except for tracks 4 and 5.
+good_tracks1.image_label = image_label;
+good_tracks1.n_traj_start = 1;
+good_tracks1.n_traj_end = 36;
+good_tracks1.minPointsTraj = 6;
+good_tracks1.good_track_numbers = [5 7 8 12]; % All tracks from 1 to 26 except for tracks 4 and 5.
 % Save result (as a .mat file, required for further analysis functions):
 output_filename = strcat('good_track_nums_',image_label);
-save(output_filename,'good_tracks') % save variable good_tracks2.
+save(output_filename,'good_tracks1') % save variable good_tracks1.
 
 % - 9. Analyse each track separatedly.
 % This is based on functions showParticleTrajAnalysis.m and
@@ -176,7 +176,6 @@ save(output_filename,'good_tracks') % save variable good_tracks2.
 % Running the line below produces one analysis excel file and graph per track:
 % processedManyTrajs = showManyParticleTrajAnalysis(image_label,n_traj_start,n_traj_end,start_frame,tsamp,pixelsize_nm,showVideo,minPointsTraj)
 showManyParticleTrajAnalysis('25',1,'end',1,1,100,0,10);
-
 
 
 %% To tests the methods on a single frame:

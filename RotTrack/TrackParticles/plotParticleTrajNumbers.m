@@ -111,7 +111,7 @@ disp('Excel file read successfully.');
 numtracks = numel(A);
 
 % Create tracks structure:
-tracks(1:numtracks) = struct('trajNumber',[],'xvalues',[],'yvalues',[],'mean_xvalue',[],'mean_yvalue',[]);
+tracks(1:numtracks) = struct('trajNumber',[],'Xcom',[],'Ycom',[],'mean_Xcom',[],'mean_Ycom',[]);
 del = []; % initialise for later.
 
 for i=1:numtracks 
@@ -126,10 +126,10 @@ for i=1:numtracks
     % tracks(i).XLS.track_index = A(i);
     tracks(i).trajNumber = A(i);
     % all values in pixels.
-    tracks(i).xvalues = data{i}(1:end,ID.Xcom); % original xvalues in image.
-    tracks(i).yvalues = data{i}(1:end,ID.Ycom); % original xvalues in image.        
-    tracks(i).mean_xvalue = mean(data{i}(1:end,ID.Xcom)); % mean x value at which the Traj Number will be displayed. 
-    tracks(i).mean_yvalue = mean(data{i}(1:end,ID.Ycom)); % mean y value at which the Traj Number will be displayed.
+    tracks(i).Xcom = data{i}(1:end,ID.Xcom); % original Xcom (centre of mass) in image.
+    tracks(i).Ycom = data{i}(1:end,ID.Ycom); % original Ycom in image.        
+    tracks(i).mean_Xcom = mean(data{i}(1:end,ID.Xcom)); % mean Xcom value at which the Traj Number will be displayed. 
+    tracks(i).mean_Ycom = mean(data{i}(1:end,ID.Ycom)); % mean Ycom value at which the Traj Number will be displayed.
     else
         % save indices to delete later:
         del(i) = i;     
@@ -144,8 +144,8 @@ tracks(find(del))=[];
 %% Plot first frame and overlay trajectory numbers:
 
 traj_number = [tracks(:).trajNumber]'; % column vector with track numbers as in excel file.
-xpos_vector = [tracks(:).mean_xvalue]'; % column vector with x positions to display track number.
-ypos_vector = [tracks(:).mean_yvalue]'; % column vector with y positions to display track number.
+xpos_vector = [tracks(:).mean_Xcom]'; % column vector with mean x positions to display track number.
+ypos_vector = [tracks(:).mean_Ycom]'; % column vector with mean y positions to display track number.
 
 % Plot numbers of accepted particle tracks (index j) overlaid 
 % on top of first frame to be able to visually identify them:
