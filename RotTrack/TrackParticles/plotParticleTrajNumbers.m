@@ -97,7 +97,7 @@ end
 
 % The trajectory number column:
 traj = NUMERIC(:,ID.TrajNumber); % NUMERIC is the numeric data read from the excel file (without the row of column titles).
-disp('File Loaded successfully!');
+disp('Excel file read successfully.');
 
 % Get individual tracks:
 

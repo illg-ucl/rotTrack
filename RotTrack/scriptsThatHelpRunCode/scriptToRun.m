@@ -48,6 +48,7 @@ function scriptToRun
 %
 % - 3. Make sure the Current Folder within Matlab is the folder that contains
 % your image video files. 
+data_folder = cd;
 
 % - 4. Define image_label: 
 image_label = '5mT-1Hz';
@@ -133,6 +134,7 @@ linkTrajSegmentsParticles(image_label,1,78,t1,'test');
 % points that might appear due to suboptimal tracking when two particles are
 % very close together):
 plotParticleTrajNumbers(image_label,10)
+cd(data_folder); % return to data folder.
 
 % Note: the code does not work optimally for particles that are close together
 % and have overlapping diffraction rings, or when there is a very uneven background. 
