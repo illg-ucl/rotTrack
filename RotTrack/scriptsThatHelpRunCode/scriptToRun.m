@@ -143,9 +143,9 @@ cd(data_folder); % return to data folder.
 % - 8a) Inspect tracks manually on a video to decide which to accept as good:
 % Use function:
 % good_tracks = goThroughParticleTracksVideo(image_label,n_traj_start,n_traj_end,minPointsTraj)
-good_tracks1 = goThroughParticleTracksVideo(image_label,1,'end',6); 
+good_tracks = goThroughParticleTracksVideo(image_label,1,'end',6); 
 % The above generates the structure:  
-% good_tracks1 = 
+% good_tracks = 
 %            image_label: '5mT-1Hz'
 %           n_traj_start: 1
 %             n_traj_end: 36
@@ -161,21 +161,23 @@ good_tracks1 = goThroughParticleTracksVideo(image_label,1,'end',6);
 % Exclude particle numbers for particles that are close to each other just
 % by looking at the png image generated in step 7.
 % E.g., to generate by hand, do:
-good_tracks1.image_label = image_label;
-good_tracks1.n_traj_start = 1;
-good_tracks1.n_traj_end = 36;
-good_tracks1.minPointsTraj = 6;
-good_tracks1.good_track_numbers = [5 7 8 12]; % All tracks from 1 to 26 except for tracks 4 and 5.
+good_tracks.image_label = image_label;
+good_tracks.n_traj_start = 1;
+good_tracks.n_traj_end = 36;
+good_tracks.minPointsTraj = 6;
+good_tracks.good_track_numbers = [5 7 8 12]; % All tracks from 1 to 26 except for tracks 4 and 5.
 % Save result (as a .mat file, required for further analysis functions):
 output_filename = strcat('good_track_nums_',image_label);
-save(output_filename,'good_tracks1') % save variable good_tracks1.
+save(output_filename,'good_tracks') % save variable good_tracks.
+% NOTE: make sure you don't change the name 'good_tracks' to anything else.
+% It is used later by function showManyParticleTrajAanalysis.m.
 
 % - 9. Analyse each track separatedly.
 % This is based on functions showParticleTrajAnalysis.m and
 % showManyParticleTrajAnalysis.m
 % Running the line below produces one analysis excel file and graph per track:
 % processedManyTrajs = showManyParticleTrajAnalysis(image_label,n_traj_start,n_traj_end,start_frame,tsamp,pixelsize_nm,showVideo,minPointsTraj)
-showManyParticleTrajAnalysis('25',1,'end',1,1,100,0,10);
+processedTrajs = showManyParticleTrajAnalysis(image_label,1,'end',1,1,1,0,6);
 
 
 %% To tests the methods on a single frame:

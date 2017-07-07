@@ -228,7 +228,7 @@ for n = n_traj_start:n_traj_end
         imshow(frame,[],'Border','tight'); % show image scaled between its min and max values ([]).
         hold on;
         
-        plot(x_values(k),y_values(k),'x','Color','g','MarkerSize',5) % plot accepted spot centres in green.
+        plot(x_values(k),y_values(k),'x','Color','g','MarkerSize',5) % plot accepted particle centres in green.
                 
         % Plot major axis of ellipse to indicate particle orientation:
         xpointsMajorAxis = [
