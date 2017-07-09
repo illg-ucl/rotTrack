@@ -1,4 +1,4 @@
-function processedManyTrajs = showManyParticleTrajAnalysis(image_label,n_traj_start,n_traj_end,start_frame,tsamp,pixelsize_nm,showVideo,minPointsTraj) 
+function processedManyTrajs = showManyParticleTrajAnalysis(image_label,n_traj_start,n_traj_end,start_frame,tsamp,pixelsize_nm,showVideo,saveAvi,minPointsTraj) 
 %
 % ========================================
 % RotTrack.
@@ -58,6 +58,8 @@ function processedManyTrajs = showManyParticleTrajAnalysis(image_label,n_traj_st
 % - 'pixelsize_nm': pixel size in nm (e.g. 35.333nm for fluorescence data).
 % - 'showVideo' is an input parameter to show a video of the trajectory
 % overlaid on the image sequence or not (1 or 0).
+% - 'saveAvi' to save or not an .avi video file of the trajectory with
+% overlaid particle centre and orientation, shows subarray, not full image (1 or 0).
 % - minPointsTraj: Minimum number of data points that a trajectory must have in order to be
 % analised (default minPointsTraj = 10, at least 3). 
 %
@@ -137,6 +139,19 @@ function processedManyTrajs = showManyParticleTrajAnalysis(image_label,n_traj_st
 % either...
 quickLook = 0;
 
+% Frame rate to show video and for the saved .avi video file:
+framesPerSecond = 10;
+% e.g., 25 frames per second corresponds to 40ms between frames.
+
+% Extra factor multiplier to allow for particle movement when displaying
+% and saving video file of particle with overlaid centre-of-mass and
+% orientation. A subarray is saved around average centre-of-mass
+% position of particle, with half size equal to 1.2 times subarray-halfsize
+% (parameter of function findTrajectsParticles.m). Corrected later if particle too close
+% to edge of image.
+extraSubarraySizeFactor = 1.2;
+
+initial_folder_path = cd; 
 
 %% Get path for trajectory data (excel file):
 
@@ -155,7 +170,7 @@ trajXlsPath = trajXlsPath0.name;
 
 % Make new folder (new directory) to save trajectory analysis results:
 pos1 = strfind(trajXlsPath,'fullTrajs.xls'); % position of the start of the string 'fullTraj.xls' in the xls input file name.
-new_folder_name = trajXlsPath(1:(pos1-1)); % Take the name of the input excel file (with the end bit 'fullTraj.xls' removed) as the new folder name.
+new_folder_name = trajXlsPath(1:(pos1-1)); % Output folder path. Take the name of the input excel file (with the end bit 'fullTraj.xls' removed) as the new folder name.
 % Note that the directory "new_folder_name" is created by function
 % showTrajAnalysis2.m when called from this function.
 
@@ -185,9 +200,9 @@ end
 
 % Open Excel file and read the data:
 
-[NUMERIC0,TXT0,RAW0]=xlsread(trajXlsPath,'params FindTrajectsParticles'); % import the data in the sheet named 'params FindTrajectsParticles'.
+[NUMERIC0,TXT0,RAW0]=xlsread(trajXlsPath,'params FindTrajects'); % import the data in the sheet named 'params FindTrajectsParticles'.
 pos_subarraySize = find(strcmp(TXT0,'subarray_halfwidth')); % row number corresponding to 'subarray_halfwidth' value.
-subarray_halfwidth = RAW0{pos_subarraySize,2};
+subarray_halfwidth = RAW0{pos_subarraySize,2}; % extract subarray_halfwidth to later use to plot/save video of only a subarray.
 
 [NUMERIC,TXT,RAW]=xlsread(trajXlsPath,'Track results'); % import the data in the sheet named 'Track results'.
 % Import the column heads and assign ID
@@ -252,6 +267,7 @@ for i=1:numtracks
     tracks(i).trajNumber = A(i);
     tracks(i).AngleDegrees = data{i}(1:end,ID.AngleDegrees); % orientation angle in degrees.    
     tracks(i).majorAxisLength = data{i}(1:end,ID.majorAxisLength); % length of major axis of ellipsoid fitted to particle shape.
+    tracks(i).minorAxisLength = data{i}(1:end,ID.minorAxisLength); % length of major axis of ellipsoid fitted to particle shape.
     tracks(i).numel = b-a+1; % Number of points in the track.
     tracks(i).frame = data{i}(1:end,ID.FrameNumber); % frame numbers.
     tracks(i).timeabs = data{i}(1:end,ID.FrameNumber).*tsamp; % Absolute time in seconds. tsamp is the time between frames in s.
@@ -349,27 +365,67 @@ for n = n_traj_start:n_traj_end
         x_values = analysedAllTraj(n).xvalues; % list of original x centres of particles in trajectory n.
         y_values = analysedAllTraj(n).yvalues; % list of original y centres of particles in trajectory n.
         
+        mean_xvalue = analysedAllTraj(n).mean_xvalue; % average x position of particle in track.
+        mean_yvalue = analysedAllTraj(n).mean_yvalue; % average y position of particle in track.
+        
         angles_deg = analysedAllTraj(n).AngleDegrees; % list of orientation angles in degrees.
         majAxisLength = analysedAllTraj(n).majorAxisLength; % list of lengths of major axis in pixels.
         
         % Show video of trajectory overlaid on actual image:
         if showVideo == 1 % 'showVideo' is input parameter.
-            
+                                              
             % Loop through frames in each trajectory analysed:
             figure('Tag','Data video','units','inches','position',[12 4 6 6]); % Figure number 2.
-            
-            % ---
-            % Create video file:
-            set(gca,'nextplot','replacechildren');
-            % ---
-            
             % 'position' vector is [left, bottom, width, height].
             % left, bottom control the position at which the window appears when it pops.
             
+            if saveAvi == 1
+                % clear mex % close all open .avi files (this avoids future errors).
+                % Move into output folder to save videos:
+                cd(new_folder_name);
+                video_filename = strcat(image_label,'_Video','Traj_',num2str(n),'.avi'); % filename of video.
+                % Create and open avi file for saving frames onto it later:
+                mov = VideoWriter(video_filename);
+                mov.FrameRate = framesPerSecond; % frame rate for the saved video.
+                % Open video file for writing:
+                open(mov);
+            end
+           
+            % SUBARRAY: Initial size of subarray image around average centre-of-mass
+            % position of particle. Corrected later if particle too close
+            % to edge of image. An extra factor extraSubarraySizeFactor is
+            % multiplied to allow for particle movement (see PARAMETERS):
+            d_top = subarray_halfwidth*extraSubarraySizeFactor;
+            d_bottom = subarray_halfwidth*extraSubarraySizeFactor;
+            d_left = subarray_halfwidth*extraSubarraySizeFactor;
+            d_right = subarray_halfwidth*extraSubarraySizeFactor;
+            % If the particle is at edge of image, take a smaller subarray around
+            % it but as large as possible until the edge is reached,
+            % so reasign the d values:
+            if (round(mean_yvalue)-d_top) < 1
+                d_top = round(mean_yvalue) - 1;
+            end
+            if (round(mean_yvalue)+d_bottom) > frame_Ysize
+                d_bottom = frame_Ysize - round(mean_yvalue);
+            end
+            if (round(mean_xvalue)-d_left) < 1
+                d_left = round(mean_xvalue) - 1;
+            end
+            if (round(mean_xvalue)+d_right) > frame_Xsize
+                d_right = frame_Xsize - round(mean_xvalue);
+            end
+            % Chose the minimum distance:
+            % d = min([d_top d_bottom d_left d_right]);
+            
             for k = 1:length(frames_list) % loop through frames in track
                 
-                frame = image_data(frames_list(k)).frame_data; % extract frame data.
-                frame = double(frame);
+                frame0 = image_data(frames_list(k)).frame_data; % extract frame data.
+                frame0 = double(frame0);
+                
+                %% Create image subarray (frame) around particle average centre of mass:
+                % Create image subarray of size (2*d+1)x(2*d+1) centered on (x_estimate,y_estimate) centroid estimate:
+                frame = frame0(round(mean_yvalue)-d:round(mean_yvalue)+d,round(mean_xvalue)-d:round()+d);
+
                 
                 imshow(frame,[],'Border','tight','InitialMagnification',150); % show image scaled between its min and max values ([]).
                 hold on;
@@ -392,11 +448,19 @@ for n = n_traj_start:n_traj_end
                 pause(0.1); % this pause is needed to give time for the plot to appear (0.1 to 0.3 default)
                 hold off;
                 
-                %             % Save each frame to the video:
-                %             track_video(k) = getframe;
-                
+                % ---
+                if saveAvi == 1
+                    % Save each frame plotted to the video mov:
+                    F = getframe(gca);
+                    writeVideo(mov,F)
+                end
+                % ---
             end
             
+            if saveAvi == 1
+                cd('..') % go back to previous folder after saving video file in new_folder_name
+            end
+        
         end
         
         % For a quick analysis of "good" trajectories, quickLook = 1, no user

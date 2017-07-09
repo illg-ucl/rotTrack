@@ -167,7 +167,7 @@ good_tracks.n_traj_end = 36;
 good_tracks.minPointsTraj = 6;
 good_tracks.good_track_numbers = [5 7 8 12]; % All tracks from 1 to 26 except for tracks 4 and 5.
 % Save result (as a .mat file, required for further analysis functions):
-output_filename = strcat('good_track_nums_',image_label);
+output_filename = strcat('good_tracks_',image_label);
 save(output_filename,'good_tracks') % save variable good_tracks.
 % NOTE: make sure you don't change the name 'good_tracks' to anything else.
 % It is used later by function showManyParticleTrajAanalysis.m.
@@ -177,7 +177,7 @@ save(output_filename,'good_tracks') % save variable good_tracks.
 % showManyParticleTrajAnalysis.m
 % Running the line below produces one analysis excel file and graph per track:
 % processedManyTrajs = showManyParticleTrajAnalysis(image_label,n_traj_start,n_traj_end,start_frame,tsamp,pixelsize_nm,showVideo,minPointsTraj)
-processedTrajs = showManyParticleTrajAnalysis(image_label,1,'end',1,1,1,0,6);
+processedTrajs = showManyParticleTrajAnalysis(image_label,1,'end',1,1,1,1,1,6);
 
 % - 10. saveTrackVideo 
 

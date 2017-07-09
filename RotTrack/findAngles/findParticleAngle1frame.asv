@@ -266,10 +266,10 @@ else
         particle_result.Xcom = foundXcentre + (round(x_estimate)-d)-1; % x centre-of-mass position within entire frame.
         particle_result.Ycom = foundYcentre + (round(y_estimate)-d)-1; % y centre-of-mass position within entire frame.
         particle_result.AngleDegrees = angleDeg; % angle of major axis with respect to the horizontal, in degrees. 
-        particle_result.xpoints_ellipse = xpoints_ellipse + (round(x_estimate)-d)-1; % all points in ellipse, for plotting.
-        particle_result.ypoints_ellipse = ypoints_ellipse + (round(y_estimate)-d)-1;
-        particle_result.xpoints_majorAxis = xpoints_majorAxis + (round(x_estimate)-d)-1; % for plotting major axis.
-        particle_result.ypoints_majorAxis = ypoints_majorAxis + (round(y_estimate)-d)-1;
+        particle_result.xpoints_ellipse = xpoints_ellipse + (round(x_estimate)-d); % all points in ellipse, for plotting.
+        particle_result.ypoints_ellipse = ypoints_ellipse + (round(y_estimate)-d);
+        particle_result.xpoints_majorAxis = xpoints_majorAxis + (round(x_estimate)-d); % for plotting major axis.
+        particle_result.ypoints_majorAxis = ypoints_majorAxis + (round(y_estimate)-d);
         particle_result.majorAxisLength = conn_regions_props.MajorAxisLength;
         particle_result.minorAxisLength = conn_regions_props.MinorAxisLength;
         particle_result.ClipFlag = clipping_flag; % 1 if candidate was closer to edge of image than inner_radius.
