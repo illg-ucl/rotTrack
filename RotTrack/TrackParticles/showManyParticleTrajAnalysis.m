@@ -388,7 +388,12 @@ for n = n_traj_start:n_traj_end
                 video_filename = strcat(image_label,'_Video','Traj_',num2str(n),'.avi'); % filename of video.
                 % Create and open avi file for saving frames onto it later:
                 mov = VideoWriter(video_filename);
+                % mov = VideoWriter(video_filename,'Uncompressed AVI'); %
+                % this seems to not allow Windows Media Player to open
+                % uncompressed videos. Need to get right codecs:
+                % https://support.microsoft.com/en-us/help/15070/windows-media-player-codecs-frequently-asked-questions
                 mov.FrameRate = framesPerSecond; % frame rate for the saved video.
+                mov.Quality = 100;              
                 % Open video file for writing:
                 open(mov);
             end
