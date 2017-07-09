@@ -653,6 +653,7 @@ n_trackData = 2; % cell element in which to save track info.
 processedTraj{n_trackData}.frame = analysedAllTraj(n_traj).frame; % vectors.
 processedTraj{n_trackData}.timeabs = analysedAllTraj(n_traj).timeabs;
 processedTraj{n_trackData}.angleDegrees = analysedAllTraj(n_traj).AngleDegrees; % orientation angle by fitting ellipse.
+processedTraj{n_trackData}.angleDegreesPos = analysedAllTraj(n_traj).AngleDegreesPos; % orientation angle by fitting ellipse.
 processedTraj{n_trackData}.majorAxisLength = analysedAllTraj(n_traj).majorAxisLength; % orientation angle by fitting ellipse.
 processedTraj{n_trackData}.minorAxisLength = analysedAllTraj(n_traj).minorAxisLength; % orientation angle by fitting ellipse.
 processedTraj{n_trackData}.xvalues = analysedAllTraj(n_traj).xvalues; % original position on image.
