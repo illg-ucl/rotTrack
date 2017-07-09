@@ -231,11 +231,11 @@ ylabel('y-y0 (nm)');
 
 
 %% Orientation angle versus time
-angleDeg = analysedAllTraj(n_traj).AngleDegrees; % orientation angle by fitting ellipse.
+angleDegPos = analysedAllTraj(n_traj).AngleDegreesPos; % orientation angle by fitting ellipse.
 % angleDeg is the angle originally found, between -90 and 90 degrees.
 % Plot angle versus time:
 subplot(2,3,3);
-plot(time_abs,angleDeg,'.-r')
+plot(time_abs,angleDegPos,'.-r')
 xlabel('t_{abs} (s)'); 
 ylabel('orientation angle (deg)');
 xlim([0 max(analysedAllTraj(n_traj).timeabs)]);
