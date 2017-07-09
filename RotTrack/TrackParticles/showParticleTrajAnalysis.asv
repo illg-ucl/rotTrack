@@ -286,17 +286,18 @@ subplot(2,3,3);
 plot(time_abs,angleDeg,'.-b')
 hold on;
 plot(time_abs,angleDegPos,'.-r')
-% Plot angle versus time linear fit:
-try % error control, if fit failed, do not plot
-    plot(fit_angle,'k'); % plot linear fit to msd data as a black line.
-catch ME3
-end
 xlabel('t_{abs} (s)'); 
 ylabel('orientation angle (deg)');
 xlim([0 max(analysedAllTraj(n_traj).timeabs)]);
 % legend('angle(deg)','cyclicAngle(deg)');
 legend('hide');
-hold off;
+% Plot angle versus time linear fit:
+try % error control, if fit failed, do not plot
+    plot(fit_angle,'k'); % plot linear fit to msd data as a black line.
+catch ME3
+end
+
+
 
 
 %% Msd (mean square displacement) versus delta-time:

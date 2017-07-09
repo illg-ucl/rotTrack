@@ -245,7 +245,7 @@ disp('Excel file read successfully.');
 numtracks = numel(A);
 
 % Create tracks structure:
-tracks(1:numtracks) = struct('trajNumber',[],'angleDegrees',[],'AngleDegreesPos',[],...
+tracks(1:numtracks) = struct('trajNumber',[],'angleDegrees',[],...
     'majorAxisLength',[],'minorAxisLength',[],...
     'xvalues',[],'yvalues',[],'mean_xvalue',[],'mean_yvalue',[],...
     'xvalues_offset',[],'yvalues_offset',[],...
@@ -267,7 +267,6 @@ for i=1:numtracks
     % tracks(i).XLS.track_index = A(i);
     tracks(i).trajNumber = A(i);
     tracks(i).AngleDegrees = data{i}(1:end,ID.AngleDegrees); % orientation angle in degrees. Original angle found, between -90 and 90 degrees.   
-    tracks(i).AngleDegreesPos = angleDegToPos(tracks(i).AngleDegrees); % positive orientation angle in degrees, between 0 and 180 deg.   
     tracks(i).majorAxisLength = data{i}(1:end,ID.majorAxisLength); % length of major axis of ellipsoid fitted to particle shape.
     tracks(i).minorAxisLength = data{i}(1:end,ID.minorAxisLength); % length of major axis of ellipsoid fitted to particle shape.
     tracks(i).numel = b-a+1; % Number of points in the track.
