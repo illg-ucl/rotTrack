@@ -270,7 +270,7 @@ good_tracks.minPointsTraj = minPointsTraj;
 good_tracks.good_track_numbers = good_track_numbers;
 
 % Save result (as .mat):
-output_filename = strcat('good_track_nums_',image_label);
+output_filename = strcat('good_tracks_',image_label);
 save(output_filename,'good_tracks') % save variable good_tracks.
 
 % --------------------
