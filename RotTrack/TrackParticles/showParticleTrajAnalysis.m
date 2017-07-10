@@ -25,14 +25,15 @@ function processedTraj = showParticleTrajAnalysis(trajXlsPath,image_data,analyse
 %
 %
 % Analyse and process data for a single trajectory/track (for trajectory number n_traj), for a given image sequence:
-% - Plot orientation angle (degrees) versus time.
+% - Plot orientation angle (degrees) versus time; fit to a line to get
+% angular velocity.
 % - plot x and y (referenced to first point in track) versus time, 
 % - plot trajectory on the x-y plane.
 % - plot mean square displacement (msd) vs Delta t with error bars first
 % all points, then only points with relative error < 150%. Fit the latter
 % (tries fitting to a line and to a confined curve and saves results).
 % - show the first frame with the trajectory overlaid.
-% - print the trajectory number and other info.
+% - print the trajectory number and other info, including angular velocity from fit.
 % Saves all plots in a .PNG image file and saves also an excel file with
 % all results.
 %  
@@ -49,13 +50,12 @@ function processedTraj = showParticleTrajAnalysis(trajXlsPath,image_data,analyse
 % It is a structure array with as many elements as
 % analysed trajectories (the ones with enough points in them), and
 % with fields:
-% 'trajNumber','AngleDegrees','majorAxisLength','xvalues','yvalues','mean_xvalue','mean_yvalue','xvalues_offset',
+% 'trajNumber','AngleDegrees','majorAxisLength','minorAxisLength','xvalues','yvalues','mean_xvalue','mean_yvalue','xvalues_offset',
 % 'yvalues_offset','msd_unavg','frame','timeabs','timerel','numel','minNumPointsInTraj',
 % 'deltaTime','msd','errorMsd','errorMsdRelPercent','disp'.
 % - 'n_traj' refers to the number of trajectory out of all the analysed
 % trajectories for which the results are shown.
-% - 'start_frame' is the number of frame considered as the origin of time (as t=0), in frames. It is the first frame for which
-% the shutter is fully open and we detect fluorescence (written in my notebook when I analysed each image sequence).
+% - 'start_frame' is the number of frame considered as the origin of time (as t=0), in frames. 
 % - 'tsamp' is the sampling time, used to calibrate the absolute time, to go
 % from frames to time in seconds. 
 % It is the time between frames in seconds. Use tsamp = 1 for the time to be in units of frames. A proper calibration
@@ -66,8 +66,9 @@ function processedTraj = showParticleTrajAnalysis(trajXlsPath,image_data,analyse
 % OUTPUT: 
 % Saves all plots in a .PNG image file and saves also an excel file with
 % all results.
-% 'processedTraj' is a cell array 4 elements:
-% The first element, {1}, contains summary results and is a structure with fields: 
+% 'processedTraj' is a cell array 6 elements:
+% The first element, {1}, and "Track info" tab in output Excel file,
+% contains summary results and is a structure with fields:
 %             track_with_jumps_flag
 %                good_tracking_flag
 %                  short_track_flag
@@ -95,30 +96,69 @@ function processedTraj = showParticleTrajAnalysis(trajXlsPath,image_data,analyse
 %                Track_meanX_offset
 %                Track_meanY_offset
 %
-% The next element, {2}, is a structure with the following fields, each containing a vector: 
+% The next element, {2}, and "Track data" tab in output Excel file, is a
+% structure with the following fields, each containing a vector (columns in
+% Excel file):
 %     'frame'
 %     'timeabs'
-%     'xvalues'
-%     'yvalues'
-%     'xvalues_offset'
+%     'angleDegrees' % original angle found, between -90 and 90 degrees.
+%     'angleDegreesPos' % positive, cyclic, processed angle, can be >360 degrees.
+%     'majorAxisLength' % length of mayor axis of ellipse fitted to particle.
+%     'minorAxisLength' % length of minor axis of ellipse fitted to particle.
+%     'xvalues' % x position of found centre of mass
+%     'yvalues' % y position of found centre of mass
+%     'xvalues_offset' % same as above but relative to first point in track.
 %     'yvalues_offset'
 %
-% The next element, {3}, is a structure with the following fields, each
-% containing a vector, for MSD data with relative error bars < 150%: 
+% The next element, {3}, and "MSD results error<150%" tab in output Excel
+% file, is a structure with the following fields, each containing a vector,
+% for MSD data with relative error bars < 150%:
 %     'deltaTime'
 %     'msd'
 %     'errorMsd'
 %     'errorMsdRelPercent'
 %
-% The next element, {4}, is a structure with the following fields, each
-% containing a vector, for all MSD data: 
+% The next element, {4}, and "MSD results all" tab in output Excel
+% file, is a structure with the following fields, each containing a vector, for all MSD data: 
 %     'deltaTime'
 %     'msd'
 %     'errorMsd'
 %     'errorMsdRelPercent'
 %
-% The next element, {5}, is a structure with the field 'results_mobility'
-% (results of MSD fitting).
+% The next element, {5}, and "Mobility results" tab in output Excel
+% file, is a structure with the field 'results_mobility'
+% (results of MSD fitting to line and to confined curve). 
+% Contains numbers:
+%     lengthMsdVector
+%     fit_msd_line_offset
+%     fit_msd_line_offset_stDev
+%     fit_msd_line_slope
+%     fit_msd_line_slope_stDev
+%     fit_msd_line_rsq
+%     fit_msd_conf_limit
+%     fit_msd_conf_limit_stDev
+%     fit_msd_conf_timeconst
+%     fit_msd_conf_timeconst_stDev
+%     fit_msd_conf_offset
+%     fit_msd_conf_offset_stDev
+%     fit_msd_conf_rsq
+%     diffusion1D_coeff_micronsSqrdPerSec
+%     diffusion1D_coeff_error
+%     size_1Dconfin_nm
+%     size_1Dconfin_nm_error
+%     Brownian_flag
+%     Confined_flag
+%     OtherMobility_flag
+% 
+% % The next element, {6}, and "Angular veloc results" tab in output Excel
+% file, is a structure with the following fields, each containing a number,
+% resulting from a linear fit of the angle versus time:
+%     fit_angle_offset, in degrees
+%     fit_angle_offset_stDev, in degrees
+%     fit_angle_slope, angular velocity in degrees/s
+%     fit_angle_slope_stDev, error of angular velocity in degrees/s
+%     fit_angle_rsq, r-squared of linear fit.
+%     
 %
 % Note: function "showManyParticleTrajAnalysis.m" calls this function "showParticleTrajAnalysis.m".
 %
