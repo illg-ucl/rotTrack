@@ -26,15 +26,15 @@ function processedManyTrajs = showManyParticleTrajAnalysis(image_label,n_traj_st
 % This function uses showParticleTrajAnalysis.m, getDisplacement.m, etc.
 %
 % Analyse all trajectory data for a given image sequence (), from trajectory
-% 'n_traj_start' to 'n_traj_end', only for the trajectory numbers in "good_track_nums_image_label.mat", i.e., selected as
+% 'n_traj_start' to 'n_traj_end', only for the trajectory numbers in "good_tracks_image_label.mat", i.e., selected as
 % "good ones" either going through videos of all tracks by eye using function
 % goThroughTracksVideo(image_label,n_traj_start,n_traj_end,minPointsTraj)
 % or generating the mat file by hand.
 % The input list of "good track" numbers must be contained in a .mat file in the current directory (see below).
 %
 % Shows results of trajectory analysis and saves them, can show the
-% trajectory overlayed on the image sequence on a video to check or not,
-% saves results of trajectory analysis to an excel file (done within
+% trajectory and orientation overlayed on the image sequence on a video or not,
+% saves results of trajectory analysis to an Excel file (done within
 % showParticleTrajAnalysis.m), saves output to a .mat file with name
 % ('procManyTraj'+image_label) within a new folder named data_set_label +
 % image_label in current directory.
@@ -99,9 +99,13 @@ function processedManyTrajs = showManyParticleTrajAnalysis(image_label,n_traj_st
 % fieldnames(processedManyTrajs{1}{2}):
 %     'frame'
 %     'timeabs'
-%     'xvalues'
-%     'yvalues'
-%     'xvalues_offset'
+%     'angleDegrees' % original orientation angle found, between -90 and 90 degrees.
+%     'angleDegreesPos' % positive, cyclic, processed angle, can be >360 degrees.
+%     'majorAxisLength' % length of mayor axis of ellipse fitted to particle.
+%     'minorAxisLength' % length of minor axis of ellipse fitted to particle.
+%     'xvalues' % x position of found centre of mass
+%     'yvalues' % y position of found centre of mass
+%     'xvalues_offset' % same as above but relative to first point in track.
 %     'yvalues_offset'
 %
 %
@@ -118,13 +122,43 @@ function processedManyTrajs = showManyParticleTrajAnalysis(image_label,n_traj_st
 %     'errorMsdRelPercent'
 %
 % fieldnames(processedManyTrajs{1}{5}): results of MSD fitting
-% structure with the field 'results_mobility'
+% structure with the field 'results_mobility'. Results of MSD fitting to
+% line and to confined curve). Contains numbers:
+%     lengthMsdVector
+%     fit_msd_line_offset
+%     fit_msd_line_offset_stDev
+%     fit_msd_line_slope
+%     fit_msd_line_slope_stDev
+%     fit_msd_line_rsq
+%     fit_msd_conf_limit
+%     fit_msd_conf_limit_stDev
+%     fit_msd_conf_timeconst
+%     fit_msd_conf_timeconst_stDev
+%     fit_msd_conf_offset
+%     fit_msd_conf_offset_stDev
+%     fit_msd_conf_rsq
+%     diffusion1D_coeff_micronsSqrdPerSec
+%     diffusion1D_coeff_error
+%     size_1Dconfin_nm
+%     size_1Dconfin_nm_error
+%     Brownian_flag
+%     Confined_flag
+%     OtherMobility_flag
 %
-% Eg.  T0 = showManyParticleTrajAnalysis('101',5,7,5,0.04,35.333,1);  
+% fieldnames(processedManyTrajs{1}{6}): Results from linear fit of
+% orientation angle versus time:
+%     fit_angle_offset, in degrees
+%     fit_angle_offset_stDev, in degrees
+%     fit_angle_slope, angular velocity in degrees/s
+%     fit_angle_slope_stDev, error of angular velocity in degrees/s
+%     fit_angle_rsq, r-squared of linear fit.
+%
+%
+% Eg.  T0 = showManyParticleTrajAnalysis('101',5,7,5,0.04,35.333,1,1,10);  
 % image '101' in folder, look at analysed trajectories 5 to 7, with frame 5
 % being the time origin and 40ms between frames.
 % Eg. to show only one trajectory (no. 8 of ATPase-GFP_101fullTrajs.xls, eg) do:
-% T0 = showManyParticleTrajAnalysis('101',8,8,5,0.04,35.333,1);
+% T0 = showManyParticleTrajAnalysis('101',8,8,5,0.04,35.333,1,1,10);
 % eg. analyse only traj number 2 for image 500 in data set 'cybD-mCherry-ATPase-GFp':  T500 = showManyParticleTrajAnalysis('500',2,2,5,0.04,35.333,1);
 % To get results, do T500{1}{i},   for i from 1 to 8.  
 % ------------------------------------
@@ -171,14 +205,14 @@ trajXlsPath = trajXlsPath0.name;
 % Make new folder (new directory) to save trajectory analysis results:
 pos1 = strfind(trajXlsPath,'fullTrajs.xls'); % position of the start of the string 'fullTraj.xls' in the xls input file name.
 new_folder_name = trajXlsPath(1:(pos1-1)); % Output folder path. Take the name of the input excel file (with the end bit 'fullTraj.xls' removed) as the new folder name.
-% Note that the directory "new_folder_name" is created by function
-% showTrajAnalysis2.m when called from this function.
+warning('off','MATLAB:MKDIR:DirectoryExists'); % Turn off warning: "Warning: Directory already exists." .
+mkdir(new_folder_name); % make new directory.
 
 %% Get path for .mat file with the numbers of the good tracks:
 
 % A file with a name "good_track_nums_1757.mat" (eg) is produced by
 % function "goThroughTracksVideo.m":
-good_tracks_path = dir(strcat('*good_track_nums','*',image_label,'*.mat'));
+good_tracks_path = dir(strcat('*good_tracks_','*',image_label,'*.mat'));
 load(good_tracks_path.name); % This loads the structure "good_tracks" onto the workspace.
 % good_tracks is a structure with fields:
 % good_tracks.image_label = image_label; input value.

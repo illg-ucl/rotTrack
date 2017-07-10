@@ -54,9 +54,9 @@ matImagePath0 = dir(strcat('*',image_label,'*.mat')); % Image sequence data path
 % Sometimes we use a .mat file containing the good track numbers with a name which contains also
 % the image sequence number and .mat, so in order to not think that is an
 % image sequence, we include the following lines.
-% If there is a .mat file and it contains the string "good_track_nums" in
+% If there is a .mat file and it contains the string "good_tracks_" in
 % its name, then:
-if ~isempty(matImagePath0) && ~isempty(strfind(matImagePath0.name,'good_track_nums'))
+if ~isempty(matImagePath0) && ~isempty(strfind(matImagePath0.name,'good_tracks_'))
     matImagePath0 = [];
 end
 
