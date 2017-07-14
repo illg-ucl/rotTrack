@@ -29,7 +29,8 @@ function particle_results = FindTrajectsParticles(image_label,start_frame,end_fr
 % - image_label: string such as '513', '490', etc., that appears in the
 % file name of the image sequence to be analysed, which is in the current folder.
 % - start_frame: first frame of the sequence to be analysed.
-% - end_frame: last frame of the sequence to be analysed.
+% - end_frame: last frame of the sequence to be analysed. One can write
+% 'end' if this is not known.
 % - excludedRegions: to exclude certain regions from image. 
 % Enter [] (so that isempty(excludedRegions) = 1) if you
 % don't want to exclude any regions.
@@ -147,11 +148,6 @@ function particle_results = FindTrajectsParticles(image_label,start_frame,end_fr
 % disp(' ') % empty line
 % disp(['The data directory (.sif images) is: ',cd]) % display current directory.
 
-% Save input parameters to "params" structure (for output):
-params.image_label = image_label;
-params.start_frame = start_frame;
-params.end_frame = end_frame;
-
 % Maximum number of candidate particles (if eg. 260000 candidate positions are
 % found, we get an error in function pdist: "Distance matrix has more
 % elements than the maximum allowed size in MATLAB"), hence, we limit the
@@ -212,6 +208,15 @@ params.rej = rej; % Save parameters to results as structure "params".
 % To get frame number "p" do: image_data(p).frame_data.
 % Frame dimensions are frame_Ysize and frame_Xsize.
 % --------------------------------------------------------------
+
+if strcmp(end_frame,'end') % if input end_frame is 'end'
+    end_frame = numFrames;
+end
+
+% Save input parameters to "params" structure (for output):
+params.image_label = image_label;
+params.start_frame = start_frame;
+params.end_frame = end_frame;
 
 % Save to parameters (for output):
 params.file_name = image_path;

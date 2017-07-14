@@ -30,7 +30,7 @@ function linkTrajSegmentsParticles(image_label,start_frame,end_frame,particle_re
 % INPUTS:
 % image_label: string such as '513', '490', etc... which corresponds to a
 % certain label that is part of the name of the image sequence.
-% start_frame and end_frames are the frames through which the loop runs to plot the result trajectories.
+% start_frame (number) and end_frames (can be number or 'end') are the frames through which the loop runs to plot the result trajectories.
 % They should be the same as previously used to produce particle_results using FindTrajectsParticles.m.
 % particle_results: parameters (particle_results{1}) and calculated trajectory segments (particle_results{2}). It is the output of function FindTrajects.m 
 % (it is a cell array with two elements. The second one is a structure array containing all segment results).
@@ -56,10 +56,6 @@ function linkTrajSegmentsParticles(image_label,start_frame,end_frame,particle_re
 % print data directory on command window to guide user:
 disp(' ') % empty line
 disp(['The data directory (image sequences) is: ',cd])
-
-disp(' ') % empty line
-disp(['The start frame for plotting trajectories is ',num2str(start_frame)]) % start_frame is an input.
-disp(['The end frame for plotting trajectories is ',num2str(end_frame)]) % end_frame is an input.
 
 % % One can save all parameter values in the file "paramsForLinkTrajSegments.m"
 % % in the current directory. Just calling the name of that file loads the
@@ -136,6 +132,14 @@ end
 % To get frame number "p" do: image_data(p).frame_data.
 % Frame dimensions are frame_Ysize and frame_Xsize.
 % --------------------------------------------------------------
+
+if strcmp(end_frame,'end') % if input end_frame is 'end'
+    end_frame = numFrames;
+end
+
+disp(' ') % empty line
+disp(['The start frame for plotting trajectories is ',num2str(start_frame)]) % start_frame is an input.
+disp(['The end frame for plotting trajectories is ',num2str(end_frame)]) % end_frame is an input.
 
 
 %% SORT and ARRANGE TRAJECTORY DATA, step 1:
