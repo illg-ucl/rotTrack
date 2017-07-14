@@ -234,6 +234,11 @@ else
     % 'MajorAxisLength','MinorAxisLenght' are axes lengths from that same ellipsoid.
     % 'Centroid' is position of centre of mass.
     
+    % Error control:
+    if size(conn_regions_props,1)>1
+        conn_regions_props = conn_regions_props(1); % take only first element.
+    end
+    
     if isempty(conn_regions_props) == false
         
         foundXcentre = conn_regions_props.Centroid(1); % x centre-of-mass position within image subarray.
