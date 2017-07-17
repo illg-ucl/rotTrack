@@ -302,7 +302,7 @@ for qend = 1:trajs_max % loop though end points of all trajectories.
     for qstart = 1:trajs_max % loop though start points of all trajectories.
         % [qend qstart]
         
-%         if qend == 124 && qstart == 522
+%         if qend == 282 && qstart == 350
 %             qend
 %             qstart
 %         end
@@ -391,6 +391,10 @@ for qend = 1:trajs_max % loop though end points of all trajectories.
                     for ii = 2:length(sorted_row)
                         if sorted_row(ii) < rej
                             qstart_chosen = find( [d01{qend,:}] == sorted_row(ii) ); % find position of pair-wise distance ii in the row (find which column).
+                            
+                            if length(qstart_chosen) > 1 % if more than one minimum distance is found:
+                                qstart_chosen = qstart_chosen(1);
+                            end
                             
                             %                             qstart_chosen
                             
