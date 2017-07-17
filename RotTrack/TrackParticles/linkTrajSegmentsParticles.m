@@ -173,13 +173,13 @@ for k = start_frame:end_frame
 %    
 %     % Plot result trajectories:
     for q = 1:max_no_particles % loop through found particles on each frame:
-
+               
         % traj_results(k,q) is a structure containing the found particle
         % characteristics, including fields 'Xcom', 'Ycom' and
         % 'TrajNumber'.
         tr = traj_results(k,q).TrajNumber; % trajectory number corresponding to found particle q on frame k.
         
-        if ~isempty(traj_results(k,q).FrameNumber) % if the particle is not empty, save it to all_data_to_export.
+        if ~isempty(traj_results(k,q).FrameNumber) && tr ~= 0 % if the particle is not empty, save it to all_data_to_export.
             if isempty(traj_results(k,q).TrajNumber) % if TrajNumber is empty fill it up with a 0 or dimensions in next step will not match.
                 traj_results(k,q).TrajNumber = 0;
             end
