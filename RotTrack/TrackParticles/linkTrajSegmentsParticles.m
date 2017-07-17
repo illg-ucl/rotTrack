@@ -174,7 +174,7 @@ for k = start_frame:end_frame
 %     % Plot result trajectories:
     for q = 1:max_no_particles % loop through found particles on each frame:
         
-%         if k == 72 && q == 15
+%         if k == 81 && q == 58
 %             k
 %             q
 %         end
@@ -301,6 +301,12 @@ for qend = 1:trajs_max % loop though end points of all trajectories.
     %     qend
     for qstart = 1:trajs_max % loop though start points of all trajectories.
         % [qend qstart]
+        
+%         if qend == 124 && qstart == 522
+%             qend
+%             qstart
+%         end
+        
         d01_best{qend,qstart} = single(rej); % preliminarily fill up the best-assignment distance matrix with values rej.
         
         x_end = separated_trajs{qend}(end,x_column); % Xcom position for last particle in trajectory qend.
@@ -365,6 +371,9 @@ for qend = 1:trajs_max % loop though end points of all trajectories.
         if sorted_row(1) < rej
             qstart_chosen = find( [d01{qend,:}] == sorted_row(1) ); % find position of pair-wise distance 1 in the row (find which column).
             
+            if length(qstart_chosen) > 1 % if more than one minimum distance is found:
+               qstart_chosen = qstart_chosen(1); 
+            end
             %             qstart_chosen
             
             % Check column-wise in that column in d01 to avoid asigning a traj segment start qstart to a traj segment end qend that had already
@@ -415,9 +424,10 @@ for qend = 1:trajs_max % loop though end points of all trajectories.
                 
                 
             else % if qend really corresponds to the minimum distance (best asignment column-wise):
-                
+                     
                 d01_best(qend,qstart_chosen) = d01(qend,qstart_chosen); % Pass value on to the "best-asignments" distance cell array d01_best.
                 % d01_best must have only one value different from rej per row and per column. All elements initially have a pre-assigned value of rej.
+                
                 
                 % Re-set values of previous assignments which were not optimum:
                 for q0 = 1:(qend-1) % loop through previously filled-up elements in that chosen column qstart_chosen:
