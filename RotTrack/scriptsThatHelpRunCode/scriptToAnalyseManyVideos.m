@@ -66,6 +66,8 @@ end
 %% Loop through videos to analyse them:
 
 for i = 1:length(videoLabel)   
+   i
+   videoLabel{i}
    % Track particles in videos:
    tracks{i} = FindTrajectsParticles(videoLabel{i},1,'end',excludedRegions);
    
@@ -80,4 +82,4 @@ for i = 1:length(videoLabel)
 end
     
  
-tracks;    
+ 
