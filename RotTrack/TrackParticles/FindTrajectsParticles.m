@@ -561,6 +561,10 @@ for k = (start_frame+1):end_frame
                 % We take the best as the closest one to particle q0:
                 q1_chosen = find([d01{q0,:}] == min([d01{q0,:}])); % find position of the minimum pair-wise distance.
                 
+                % ERROR CONTROL (on rare occasions, two positions are found above):
+                if length(q1_chosen) > 1
+                    q1_chosen = q1_chosen(1);
+                end
 %                             q1_chosen
                 
                 % Check if there is a better competing asignment for a given particle centre q1 in the current
@@ -683,7 +687,7 @@ for k = (start_frame+1):end_frame
                 for q1 = 1:N1 % loop though accepted particle centres in current frame.
                     % d_01: distance between particle centres in previous and current frames:
                     d_01 = sqrt((particle_final(k-1,q0).Xcom-particle_final(k,q1).Xcom)^2+(particle_final(k-1,q0).Ycom-particle_final(k,q1).Ycom)^2);
-                     
+                    
                     %                     d_01
                     
                     % Accept and save trajectory if particle centres in previous and
@@ -720,6 +724,10 @@ for k = (start_frame+1):end_frame
                     % We take the best as the closest one to particle q0:
                     q1_chosen = find([d01{q0,:}] == min([d01{q0,:}])); % find position of the minimum pair-wise distance.
                     
+                    % ERROR CONTROL (on rare occasions, two positions are found above):
+                    if length(q1_chosen) > 1
+                        q1_chosen = q1_chosen(1);
+                    end
 %                                     q1_chosen
                     
                     % Check if there is a better competing asignment for a given particle centre q1 in the current
