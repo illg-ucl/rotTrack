@@ -457,7 +457,13 @@ while jj < size(best_assignmt_groups,1)
 %     first_column
     
     row_link = find( first_column == best_assignmt_groups{jj}(end) ); % row corresponding to another found assignment which links to the present one.
-    % note that in best_assignmt_groups all competing assignments have been solved already.
+    % Error control:
+    if length(row_link) > 1
+        row_link = row_link(1);
+    end
+    % note that in best_assignmt_groups all competing assignments have been
+    % solved already. (only very rarely there are competing assigments
+    % left).
     
 %     row_link
     

@@ -68,13 +68,16 @@ end
 for i = 1:length(videoLabel)   
    % Track particles in videos:
    tracks{i} = FindTrajectsParticles(videoLabel{i},1,'end',excludedRegions);
+   
+   % save tracking results:
+   save 'resultStructures' 'tracks'
+   
    linkTrajSegmentsParticles(videoLabel{i},1,'end',tracks{i},'analysis');
+
    % Plot and save particle numbers on png:
    plotParticleTrajNumbers(videoLabel{i},10); 
    cd(data_folder);
 end
     
-% save tracking results:
-save 'resultStructures' 'tracks'     
-    
-    
+ 
+tracks;    
