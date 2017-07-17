@@ -173,18 +173,31 @@ for k = start_frame:end_frame
 %    
 %     % Plot result trajectories:
     for q = 1:max_no_particles % loop through found particles on each frame:
-               
+        
+%         if k == 72 && q == 15
+%             k
+%             q
+%         end
         % traj_results(k,q) is a structure containing the found particle
         % characteristics, including fields 'Xcom', 'Ycom' and
         % 'TrajNumber'.
         tr = traj_results(k,q).TrajNumber; % trajectory number corresponding to found particle q on frame k.
-        
-        if ~isempty(traj_results(k,q).FrameNumber) && tr ~= 0 % if the particle is not empty, save it to all_data_to_export.
-            if isempty(traj_results(k,q).TrajNumber) % if TrajNumber is empty fill it up with a 0 or dimensions in next step will not match.
-                traj_results(k,q).TrajNumber = 0;
+                
+        if isempty(traj_results(k,q).FrameNumber) || isempty(tr) % if the particle is empty, do not save to all_data_to_export.
+            % if TrajNumber is empty fill it up with a 0 or dimensions in next step will not match.
+            traj_results(k,q).TrajNumber = 0; % likely unnecessary.
+        else
+            if tr ~= 0 % do not save loose particles to prevent bugs.
+                all_data_to_export = [all_data_to_export; single(cell2mat(struct2cell(traj_results(k,q)))')]; % append row with the particle data.
             end
-            all_data_to_export = [all_data_to_export; single(cell2mat(struct2cell(traj_results(k,q)))')]; % append row with the particle data.
         end
+               
+%         if ~isempty(traj_results(k,q).FrameNumber) && tr ~= 0 % if the particle is not empty, save it to all_data_to_export.
+%             if isempty(traj_results(k,q).TrajNumber) % if TrajNumber is empty fill it up with a 0 or dimensions in next step will not match.
+%                 traj_results(k,q).TrajNumber = 0;
+%             end
+%             all_data_to_export = [all_data_to_export; single(cell2mat(struct2cell(traj_results(k,q)))')]; % append row with the particle data.
+%         end
         
         if  tr > 0  % only plot trajectory numbers > 0 (TrajNumber=0 is for loose particles):
             % Plot each trajectory in a different colour:
