@@ -142,8 +142,8 @@ cd(data_folder); % return to data folder.
 % - 8. Select good tracks. Two alternative methods:
 % - 8a) Inspect tracks manually on a video to decide which to accept as good:
 % Use function:
-% good_tracks = goThroughParticleTracksVideo(image_label,n_traj_start,n_traj_end,minPointsTraj)
-good_tracks = goThroughParticleTracksVideo(image_label,1,'end',6); 
+% good_tracks = goThroughParticleTracksVideo(image_label,data_set_label,n_traj_start,n_traj_end,minPointsTraj,maxMajorAxisLength)
+good_tracks = goThroughParticleTracksVideo(image_label,'test',1,'end',6,50); 
 % The above generates the structure:  
 % good_tracks = 
 %            image_label: '5mT-1Hz'
@@ -165,6 +165,7 @@ good_tracks.image_label = image_label;
 good_tracks.n_traj_start = 1;
 good_tracks.n_traj_end = 36;
 good_tracks.minPointsTraj = 6;
+good_tracks.maxMajorAxisLength = 50;
 good_tracks.good_track_numbers = [5 7 8 12]; % All tracks from 1 to 26 except for tracks 4 and 5.
 % Save result (as a .mat file, required for further analysis functions):
 output_filename = strcat('good_tracks_',image_label);

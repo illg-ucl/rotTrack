@@ -86,16 +86,22 @@ end
  
 %% Loop through videos to further analyse tracks:
 
+% Maximum size of particle length (major axis of fitted ellipsoid in
+% pixels) for particle to be accepted:
+maxMajorAxisLength = 60;
+% minimum number of points in track for it to be accepted:
+minPointsTraj = 6;
+
 for i = 1:length(videoLabel)   
    i
    videoLabel{i}
    % Go through tracks, decide which are "good" ones and save them to .mat
    % file in current directory for further processing:
-   good_tracks{i} = goThroughParticleTracksVideo(videoLabel{i},data_set_label,1,'end',6); 
+   good_tracks{i} = goThroughParticleTracksVideo(videoLabel{i},data_set_label,1,'end',minPointsTraj,maxMajorAxisLength); 
    
    % Further process tracks to produce one plot and excel file per track:
    % showManyParticleTrajAnalysis(image_label,data_set_label,n_traj_start,n_traj_end,start_frame,tsamp,pixelsize_nm,showVideo,saveAvi,minPointsTraj)
-   processedTrajs{i} = showManyParticleTrajAnalysis(videoLabel{i},1,'end',1,0.0333,1,1,1,6);
+   processedTrajs{i} = showManyParticleTrajAnalysis(videoLabel{i},1,'end',1,0.0333,1,1,1,minPointsTraj);
    % save processed results:
    save 'resultTracks' 'processedTrajs'
 end

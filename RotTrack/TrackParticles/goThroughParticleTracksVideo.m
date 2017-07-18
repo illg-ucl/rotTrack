@@ -1,4 +1,6 @@
-function good_tracks = goThroughParticleTracksVideo(image_label,data_set_label,n_traj_start,n_traj_end,minPointsTraj) 
+function good_tracks = goThroughParticleTracksVideo(image_label,data_set_label,n_traj_start,n_traj_end,minPointsTraj,maxMajorAxisLength) 
+%
+% good_tracks = goThroughParticleTracksVideo(image_label,data_set_label,n_traj_start,n_traj_end,minPointsTraj,maxMajorAxisLength)  
 %
 % ========================================
 % RotTrack.
@@ -34,14 +36,16 @@ function good_tracks = goThroughParticleTracksVideo(image_label,data_set_label,n
 % contains the trajectory results, which should be in the same directory as the video file.
 %
 % INPUTS: 
-% - 'image_label' string that labels the image sequence under analysis, e.g. '101'.
-% - 'data_set_label': string that labels set of data or parameters. Use
+% - image_label: string that labels the image sequence under analysis, e.g. '101'.
+% - data_set_label: string that labels set of data or parameters. Use
 % same as in input to linkTrajSegmentsParticles.m.
-% - 'n_traj_start': first trajectory we want to analyse and check.
-% - 'n_traj_end': last trajectory we want to analyse and check. If the
+% - n_traj_start: first trajectory we want to analyse and check.
+% - n_traj_end: last trajectory we want to analyse and check. If the
 % string 'end' is entered, we go through to the last analysed trajectory.
 % - minPointsTraj: minimum number of data points that a trajectory must have in order to be
 % analised.
+% - maxMajorAxisLength: maximum length in pixels that a particle can have
+% (major axis of fitted ellipsoid) to be accepted as valid.
 % (A value of at least 6 needs to be used for all methods in
 % "showTrajAnalysis.m" (and therefore "showManyTrajAnalysis.m") to work
 % well).
@@ -146,21 +150,21 @@ for i=1:numtracks
     
     % Delete tracks that are less than minPointsTraj data points long:
     if b-a+1 >= minPointsTraj  % Only analyse tracks which have at least "minPointsTraj" points (frames) in them (5, or 15, e.g.).
-    
-    data{i} = NUMERIC(a:b,:);
-    % tracks(i).XLS.track_index = A(i);
-    tracks(i).TrajNumber = A(i);
-    tracks(i).Xcom = data{i}(1:end,ID.Xcom); % centre of mass x values on image (used later for plotting).
-    tracks(i).Ycom = data{i}(1:end,ID.Ycom); % centre of mass y values on image (used later for plotting).
-    tracks(i).FrameNumber = data{i}(1:end,ID.FrameNumber); % frame number.
-    tracks(i).AngleDegrees = data{i}(1:end,ID.AngleDegrees); % orientation angle in degrees.    
-    tracks(i).majorAxisLength = data{i}(1:end,ID.majorAxisLength); % length of major axis of ellipsoid fitted to particle shape.
-    tracks(i).numel = b-a+1; % Number of points in the track. 
-    tracks(i).minNumPointsInTraj = minPointsTraj;
-  
+        
+        data{i} = NUMERIC(a:b,:);
+        % tracks(i).XLS.track_index = A(i);
+        tracks(i).TrajNumber = A(i);
+        tracks(i).Xcom = data{i}(1:end,ID.Xcom); % centre of mass x values on image (used later for plotting).
+        tracks(i).Ycom = data{i}(1:end,ID.Ycom); % centre of mass y values on image (used later for plotting).
+        tracks(i).FrameNumber = data{i}(1:end,ID.FrameNumber); % frame number.
+        tracks(i).AngleDegrees = data{i}(1:end,ID.AngleDegrees); % orientation angle in degrees.
+        tracks(i).majorAxisLength = data{i}(1:end,ID.majorAxisLength); % length of major axis of ellipsoid fitted to particle shape.
+        tracks(i).numel = b-a+1; % Number of points in the track.
+        tracks(i).minNumPointsInTraj = minPointsTraj;
+        
     else
         % save indices to delete later:
-        del(i) = i;     
+        del(i) = i;
     end
     
 end
@@ -199,7 +203,7 @@ end
 
 
 
-%% Loop selected trajectories:
+%% Loop through trajectories:
 
 good_track_numbers = []; % initialise empty vector where I will store numbers of tracks labelled as "good" by the user.
 
@@ -209,7 +213,6 @@ for n = n_traj_start:n_traj_end
     close(findobj('Tag','Trajectory results'));
     % close(all); % close all figures.
    
-    % Show video of trajectory overlaid on actual image:
     frames_list = analysedAllTraj(n).FrameNumber; % list of frame numbers in trajectory n.
     x_values = analysedAllTraj(n).Xcom; % list of x centres of particle in trajectory n.
     y_values = analysedAllTraj(n).Ycom; % list of y centres of particle in trajectory n. 
@@ -217,51 +220,58 @@ for n = n_traj_start:n_traj_end
     angles_deg = analysedAllTraj(n).AngleDegrees; % list of orientation angles in degrees.
     majAxisLength = analysedAllTraj(n).majorAxisLength; % list of lengths of major axis in pixels.
     
-    % Loop through frames in each trajectory analysed:
-    figure('Tag','Data video','Units','normalized','Position',[0 1 0.2 0.2]); % Figure number 2.   
-    % 'position' vector is [left, bottom, width, height].
-    % left, bottom control the position at which the window appears when it
-    % pops.
-    
-    for k = 1:length(frames_list) % loop through frames in track
+    if mean(majAxisLength) < maxMajorAxisLength
         
-        frame = image_data(frames_list(k)).frame_data; % extract frame data which is stored in field 'frame_data'.
-        frame = double(frame);
+%         % Show video of trajectory overlaid on actual image:
+%         % Loop through frames in each trajectory analysed:
+%         figure('Tag','Data video','Units','normalized','Position',[0 1 0.2 0.2]); % Figure number 2.
+%         % 'position' vector is [left, bottom, width, height].
+%         % left, bottom control the position at which the window appears when it
+%         % pops.
+%         
+%         for k = 1:length(frames_list) % loop through frames in track
+%             
+%             frame = image_data(frames_list(k)).frame_data; % extract frame data which is stored in field 'frame_data'.
+%             frame = double(frame);
+%             
+%             imshow(frame,[],'Border','tight'); % show image scaled between its min and max values ([]).
+%             hold on;
+%             
+%             plot(x_values(k),y_values(k),'x','Color','g','MarkerSize',5) % plot accepted particle centres in green.
+%             
+%             % Plot major axis of ellipse to indicate particle orientation:
+%             xpointsMajorAxis = [
+%                 x_values(k) - 0.5*majAxisLength(k)*cos(angles_deg(k)/180*pi)
+%                 x_values(k)
+%                 x_values(k) + 0.5*majAxisLength(k)*cos(angles_deg(k)/180*pi)
+%                 ];
+%             ypointsMajorAxis = [
+%                 y_values(k) + 0.5*majAxisLength(k)*sin(angles_deg(k)/180*pi)
+%                 y_values(k)
+%                 y_values(k) - 0.5*majAxisLength(k)*sin(angles_deg(k)/180*pi)
+%                 ];
+%             plot(xpointsMajorAxis,ypointsMajorAxis,'y','LineWidth',1);
+%             
+%             pause(0.1); % this pause is needed to give time for the plot to appear (0.1 to 0.3 default)
+%             hold off;
+%             
+%         end
+%         
+%         close(findobj('Tag','Data video')); % close video figure;
         
-        imshow(frame,[],'Border','tight'); % show image scaled between its min and max values ([]).
-        hold on;
+        disp(['Track number ',num2str(n),' out of ' num2str(n_trajs_analysed) ' tracks:'])
         
-        plot(x_values(k),y_values(k),'x','Color','g','MarkerSize',5) % plot accepted particle centres in green.
-                
-        % Plot major axis of ellipse to indicate particle orientation:
-        xpointsMajorAxis = [
-            x_values(k) - 0.5*majAxisLength(k)*cos(angles_deg(k)/180*pi)
-            x_values(k)
-            x_values(k) + 0.5*majAxisLength(k)*cos(angles_deg(k)/180*pi)
-            ];
-        ypointsMajorAxis = [
-            y_values(k) + 0.5*majAxisLength(k)*sin(angles_deg(k)/180*pi)
-            y_values(k)
-            y_values(k) - 0.5*majAxisLength(k)*sin(angles_deg(k)/180*pi)
-            ];
-        plot(xpointsMajorAxis,ypointsMajorAxis,'y','LineWidth',1);
-                    
-        pause(0.1); % this pause is needed to give time for the plot to appear (0.1 to 0.3 default)
-        hold off;
-        
-    end
-        
-    disp(['Track number ',num2str(n),' out of ' num2str(n_trajs_analysed) ' tracks:'])
-
-    % Request user input: for GOOD tracking or not:
-    good_tracking_flag = input('Is the tracking "good" for this trajectory? (1 for "yes", anything else for "no"): '); 
-    % flag saying if trajectory is a good one or not (bgnd point, not good tracking, etc.).
-       
-    close(findobj('Tag','Data video')); % close video figure;
-    
-    if good_tracking_flag == 1
         good_track_numbers = [good_track_numbers n]; % append to good_tracks (track numbers) vector.
+        
     end
+    
+%     % Request user input: for GOOD tracking or not:
+%     good_tracking_flag = input('Is the tracking "good" for this trajectory? (1 for "yes", anything else for "no"): '); 
+%     % flag saying if trajectory is a good one or not (bgnd point, not good tracking, etc.).
+
+%     if good_tracking_flag == 1
+%         good_track_numbers = [good_track_numbers n]; % append to good_tracks (track numbers) vector.
+%     end
     
 end
 
@@ -270,6 +280,7 @@ good_tracks.image_label = image_label;
 good_tracks.n_traj_start = n_traj_start;
 good_tracks.n_traj_end = n_traj_end;
 good_tracks.minPointsTraj = minPointsTraj;
+good_tracks.maxMajorAxisLength = maxMajorAxisLength;
 good_tracks.good_track_numbers = good_track_numbers;
 
 % Save result (as .mat):
