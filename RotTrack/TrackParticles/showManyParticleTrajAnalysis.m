@@ -176,7 +176,7 @@ function processedManyTrajs = showManyParticleTrajAnalysis(image_label,data_set_
 quickLook = 0;
 
 % Frame rate to show video and for the saved .avi video file:
-framesPerSecond = 30;
+framesPerSecond = 5;
 % e.g., 25 frames per second corresponds to 40ms between frames.
 
 % Extra factor multiplier to allow for particle movement when displaying
@@ -463,7 +463,9 @@ for n = n_traj_start:n_traj_end
             d = min([d_top d_bottom d_left d_right]);
             
             for k = 1:length(frames_list) % loop through frames in track
-                
+                if k == 160
+                    k
+                end
                 frame0 = image_data(frames_list(k)).frame_data; % extract frame data.
                 frame0 = double(frame0);
                 
