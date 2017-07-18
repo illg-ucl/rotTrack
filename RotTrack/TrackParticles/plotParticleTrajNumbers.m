@@ -1,4 +1,4 @@
-function plotParticleTrajNumbers(image_label,minPointsTraj) 
+function plotParticleTrajNumbers(image_label,data_set_label,minPointsTraj) 
 %
 % ========================================
 % RotTrack.
@@ -32,6 +32,8 @@ function plotParticleTrajNumbers(image_label,minPointsTraj)
 %
 % INPUTS: 
 % - 'image_label' string that labels the image sequence under analysis, e.g. '101'.
+% - data_set_label: string that labels set of data or parameters. Use
+% same as in input to linkTrajSegmentsParticles.m.
 % - minPointsTraj: minimum number of data points that a trajectory must have in order to be
 % analised.
 %
@@ -52,7 +54,8 @@ function plotParticleTrajNumbers(image_label,minPointsTraj)
 
 % You need to be in the correct directory before running the function!!!!
 % Find paths in current folder which contain the 'image_label' string and are .xls files:
-trajXlsPath0 = dir(strcat('*',image_label,'*.xls')); % Trajectory data path (excel file with the full trajectories as returned by function "linkTrajSegmentsParticles.m").
+trajXlsPath0 = dir(strcat('*',data_set_label,'_',image_label,'_fullTrajs.xls')); % Trajectory data path (excel file with the full trajectories as returned by function "linkTrajSegmentsParticles.m"). 
+
 % Error control:
 if isempty(trajXlsPath0) % If there is no .xls trajectory data file for such image number, show error and exit function:
     error('Check you are in the correct directory and run again. No .xls file found for that image label. Make sure image number is in between quotes ''.'); 
