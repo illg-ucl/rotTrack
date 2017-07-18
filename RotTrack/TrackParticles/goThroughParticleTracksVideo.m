@@ -1,4 +1,4 @@
-function good_tracks = goThroughParticleTracksVideo(image_label,n_traj_start,n_traj_end,minPointsTraj) 
+function good_tracks = goThroughParticleTracksVideo(image_label,data_set_label,n_traj_start,n_traj_end,minPointsTraj) 
 %
 % ========================================
 % RotTrack.
@@ -35,6 +35,8 @@ function good_tracks = goThroughParticleTracksVideo(image_label,n_traj_start,n_t
 %
 % INPUTS: 
 % - 'image_label' string that labels the image sequence under analysis, e.g. '101'.
+% - 'data_set_label': string that labels set of data or parameters. Use
+% same as in input to linkTrajSegmentsParticles.m.
 % - 'n_traj_start': first trajectory we want to analyse and check.
 % - 'n_traj_end': last trajectory we want to analyse and check. If the
 % string 'end' is entered, we go through to the last analysed trajectory.
@@ -71,7 +73,8 @@ function good_tracks = goThroughParticleTracksVideo(image_label,n_traj_start,n_t
 
 % You need to be in the correct directory before running the function!!!!
 % Find paths in current folder which contain 'image_label' string:
-trajXlsPath0 = dir(strcat('*',image_label,'*.xls')); % Trajectory data path (excel file with the full trajectories as returned by function "linkTrajSegmentsParticles.m").
+trajXlsPath0 = dir(strcat('*',data_set_label,'_',image_label,'_fullTrajs.xls')); % Trajectory data path (excel file with the full trajectories as returned by function "linkTrajSegmentsParticles.m").
+
 % Error control:
 if isempty(trajXlsPath0) % If there is no .xls trajectory data file for such image number, show error and exit function:
     error('Check you are in the correct directory and run again. No .xls file found for that image number. Make sure image number is in between quotes ''.'); 

@@ -25,6 +25,8 @@ function scriptToAnalyseManyVideos
 
 %% PARAMETERS:
 
+data_set_label = 'analysis';
+
 % Make sure current directory is the directory containing the video files:
 data_folder = cd;
 
@@ -65,21 +67,38 @@ end
 
 %% Loop through videos to analyse them:
 
+% for i = 1:length(videoLabel)   
+%    i
+%    videoLabel{i}
+%    % Track particles in videos:
+%    tracks{i} = FindTrajectsParticles(videoLabel{i},1,'end',excludedRegions);
+%    
+%    % save tracking results:
+%    save 'resultStructures' 'tracks'
+%    
+%    linkTrajSegmentsParticles(videoLabel{i},1,'end',tracks{i},data_set_label);
+% 
+%    % Plot and save particle numbers on png:
+%    plotParticleTrajNumbers(videoLabel{i},10); 
+%    cd(data_folder);
+% end
+    
+ 
+%% Loop through videos to further analyse tracks:
+
 for i = 1:length(videoLabel)   
    i
    videoLabel{i}
-   % Track particles in videos:
-   tracks{i} = FindTrajectsParticles(videoLabel{i},1,'end',excludedRegions);
+   % Go through tracks, decide which are "good" ones and save them to .mat
+   % file in current directory for further processing:
+   good_tracks{i} = goThroughParticleTracksVideo(videoLabel{i},data_set_label,1,'end',6); 
    
-   % save tracking results:
-   save 'resultStructures' 'tracks'
-   
-   linkTrajSegmentsParticles(videoLabel{i},1,'end',tracks{i},'analysis');
-
-   % Plot and save particle numbers on png:
-   plotParticleTrajNumbers(videoLabel{i},10); 
-   cd(data_folder);
+   % Further process tracks to produce one plot and excel file per track:
+   % showManyParticleTrajAnalysis(image_label,data_set_label,n_traj_start,n_traj_end,start_frame,tsamp,pixelsize_nm,showVideo,saveAvi,minPointsTraj)
+   processedTrajs{i} = showManyParticleTrajAnalysis(videoLabel{i},1,'end',1,0.0333,1,1,1,6);
+   % save processed results:
+   save 'resultTracks' 'processedTrajs'
 end
-    
- 
+
+
  

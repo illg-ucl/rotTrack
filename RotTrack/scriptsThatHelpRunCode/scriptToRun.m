@@ -176,8 +176,8 @@ save(output_filename,'good_tracks') % save variable good_tracks.
 % This is based on functions showParticleTrajAnalysis.m and
 % showManyParticleTrajAnalysis.m
 % Running the line below produces one analysis excel file and graph per track:
-% processedManyTrajs = showManyParticleTrajAnalysis(image_label,n_traj_start,n_traj_end,start_frame,tsamp,pixelsize_nm,showVideo,minPointsTraj)
-processedTrajs = showManyParticleTrajAnalysis(image_label,1,'end',1,1,1,1,1,6);
+% processedManyTrajs = showManyParticleTrajAnalysis(image_label,n_traj_start,n_traj_end,start_frame,tsamp,pixelsize_nm,showVideo,saveAvi,minPointsTraj) 
+processedTrajs = showManyParticleTrajAnalysis(image_label,1,'end',1,0.0333,1,1,1,6);
 
 
 
