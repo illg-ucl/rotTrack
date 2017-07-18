@@ -1,4 +1,4 @@
-function processedManyTrajs = showManyParticleTrajAnalysis(image_label,n_traj_start,n_traj_end,start_frame,tsamp,pixelsize_nm,showVideo,saveAvi,minPointsTraj) 
+function processedManyTrajs = showManyParticleTrajAnalysis(image_label,data_set_label,n_traj_start,n_traj_end,start_frame,tsamp,pixelsize_nm,showVideo,saveAvi,minPointsTraj) 
 %
 % ========================================
 % RotTrack.
@@ -46,6 +46,8 @@ function processedManyTrajs = showManyParticleTrajAnalysis(image_label,n_traj_st
 %
 % INPUTS: 
 % - 'image_label' string that labels the image sequence under analysis, e.g. '101'.
+% - data_set_label: string that labels set of data or parameters. Use
+% same as in input to linkTrajSegmentsParticles.m.
 % - 'n_traj_start': first trajectory we want to analyse and check.
 % - 'n_traj_end': last trajectory we want to analyse and check. If the
 % string 'end' is entered, we go through to the last analysed trajectory.
@@ -154,11 +156,11 @@ function processedManyTrajs = showManyParticleTrajAnalysis(image_label,n_traj_st
 %     fit_angle_rsq, r-squared of linear fit.
 %
 %
-% Eg.  T0 = showManyParticleTrajAnalysis('101',5,7,5,0.04,35.333,1,1,10);  
+% Eg.  T0 = showManyParticleTrajAnalysis('101','test',5,7,5,0.04,35.333,1,1,10);  
 % image '101' in folder, look at analysed trajectories 5 to 7, with frame 5
 % being the time origin and 40ms between frames.
 % Eg. to show only one trajectory (no. 8 of ATPase-GFP_101fullTrajs.xls, eg) do:
-% T0 = showManyParticleTrajAnalysis('101',8,8,5,0.04,35.333,1,1,10);
+% T0 = showManyParticleTrajAnalysis('101','dataset1',8,8,5,0.04,35.333,1,1,10);
 % eg. analyse only traj number 2 for image 500 in data set 'cybD-mCherry-ATPase-GFp':  T500 = showManyParticleTrajAnalysis('500',2,2,5,0.04,35.333,1);
 % To get results, do T500{1}{i},   for i from 1 to 8.  
 % ------------------------------------
@@ -191,11 +193,13 @@ initial_folder_path = cd;
 
 % You need to be in the correct directory before running the function!!!!
 % Find paths in current folder which contain 'image_label' string:
-trajXlsPath0 = dir(strcat('*',image_label,'*.xls')); % Trajectory data path (excel file with the full trajectories as returned by function "linkTrajSegments.m").
+trajXlsPath0 = dir(strcat('*',data_set_label,'_',image_label,'_fullTrajs.xls')); % Trajectory data path (excel file with the full trajectories as returned by function "linkTrajSegmentsParticles.m"). 
+
 % Error control:
 if isempty(trajXlsPath0) % If there is no .xls trajectory data file for such image number, show error and exit function:
     error('Check you are in the correct directory and run again. No .xls file found for that image number. Make sure image number is in between quotes ''.'); 
 end
+
 trajXlsPath = trajXlsPath0.name;
 % trajXlsPath0 is a structure and the file names is stored in the field 'name'.
 
@@ -212,14 +216,15 @@ mkdir(new_folder_name); % make new directory.
 
 % A file with a name "good_track_nums_1757.mat" (eg) is produced by
 % function "goThroughTracksVideo.m":
-good_tracks_path = dir(strcat('*good_tracks_','*',image_label,'*.mat'));
+good_tracks_path = dir(strcat('good_tracks_',image_label,'.mat'));
 load(good_tracks_path.name); % This loads the structure "good_tracks" onto the workspace.
 % good_tracks is a structure with fields:
-% good_tracks.image_label = image_label; input value.
-% good_tracks.n_traj_start = n_traj_start; input value.
-% good_tracks.n_traj_end = n_traj_end; input value.
-% good_tracks.minPointsTraj = minPointsTraj, input value.
-% good_tracks.track_numbers: is a row vector containing the numbers of tracks considered as
+% good_tracks.image_label; input value.
+% good_tracks.n_traj_start; input value.
+% good_tracks.n_traj_end; input value.
+% good_tracks.minPointsTraj; input value.
+% good_tracks.maxMajorAxisLength; input value.
+% good_tracks.good_track_numbers: is a row vector containing the numbers of tracks considered as
 % "good" by the user after seing the videos of the track overlaid on the
 % image sequence.
 
@@ -296,35 +301,35 @@ for i=1:numtracks
     
     % Delete tracks that are less than minPointsTraj data points long:
     if b-a+1 >= minPointsTraj  % Only analyse tracks which have at least "minPointsTraj" points (frames) in them (5, or 15, e.g.).
-    
-    data{i} = NUMERIC(a:b,:);
-    % tracks(i).XLS.track_index = A(i);
-    tracks(i).trajNumber = A(i);
-    tracks(i).AngleDegrees = data{i}(1:end,ID.AngleDegrees); % orientation angle in degrees. Original angle found, between -90 and 90 degrees.   
-    tracks(i).majorAxisLength = data{i}(1:end,ID.majorAxisLength); % length of major axis of ellipsoid fitted to particle shape.
-    tracks(i).minorAxisLength = data{i}(1:end,ID.minorAxisLength); % length of major axis of ellipsoid fitted to particle shape.
-    tracks(i).numel = b-a+1; % Number of points in the track.
-    tracks(i).frame = data{i}(1:end,ID.FrameNumber); % frame numbers.
-    tracks(i).timeabs = data{i}(1:end,ID.FrameNumber).*tsamp; % Absolute time in seconds. tsamp is the time between frames in s.
-    tracks(i).minNumPointsInTraj = minPointsTraj;
-    % All absolute position values in pixels:
-    tracks(i).xvalues = data{i}(1:end,ID.Xcom); % xvalues for centre of mass of particle on image (used later for plotting traj on image).
-    tracks(i).yvalues = data{i}(1:end,ID.Ycom); % yvalues for centre of mass of particle on image.           
-    tracks(i).mean_xvalue = mean(data{i}(1:end,ID.Xcom)); % mean x value. 
-    tracks(i).mean_yvalue = mean(data{i}(1:end,ID.Ycom)); % mean y value.
-    % Set spatial origin to position of first point in track:
-    tracks(i).xvalues_offset = tracks(i).xvalues - (tracks(i).xvalues(1)); % xvalues relative to the first point in the trajectory.
-    tracks(i).yvalues_offset = tracks(i).yvalues - (tracks(i).yvalues(1)); % % yvalues relative to the first point in the trajectory.
-    tracks(i).msd_unavg = tracks(i).xvalues_offset.^2+tracks(i).yvalues_offset.^2; % absolute squared displacement from the origin (0,0): x^2 + y^2.
-    % Set time origin to first point in track:
-    tracks(i).timerel = tracks(i).timeabs-tracks(i).timeabs(1); % Time relative to first point in track. Set the first frame analysed as time zero reference (not used for now). 
-    % Calculate and add to structure the 2D mean square displacement (msd):
-    tracks(i) = getDisplacement(tracks(i),tsamp); % calculate msd and its error and add it to result structure.
-    % getDisplacement.m adds the following fields to the tracks structure:
-    % 'deltaTime','msd','errorMsd','errorMsdRelPercent' and 'disp'.
+        
+        data{i} = NUMERIC(a:b,:);
+        % tracks(i).XLS.track_index = A(i);
+        tracks(i).trajNumber = A(i);
+        tracks(i).AngleDegrees = data{i}(1:end,ID.AngleDegrees); % orientation angle in degrees. Original angle found, between -90 and 90 degrees.
+        tracks(i).majorAxisLength = data{i}(1:end,ID.majorAxisLength); % length of major axis of ellipsoid fitted to particle shape.
+        tracks(i).minorAxisLength = data{i}(1:end,ID.minorAxisLength); % length of major axis of ellipsoid fitted to particle shape.
+        tracks(i).numel = b-a+1; % Number of points in the track.
+        tracks(i).frame = data{i}(1:end,ID.FrameNumber); % frame numbers.
+        tracks(i).timeabs = data{i}(1:end,ID.FrameNumber).*tsamp; % Absolute time in seconds. tsamp is the time between frames in s.
+        tracks(i).minNumPointsInTraj = minPointsTraj;
+        % All absolute position values in pixels:
+        tracks(i).xvalues = data{i}(1:end,ID.Xcom); % xvalues for centre of mass of particle on image (used later for plotting traj on image).
+        tracks(i).yvalues = data{i}(1:end,ID.Ycom); % yvalues for centre of mass of particle on image.
+        tracks(i).mean_xvalue = mean(data{i}(1:end,ID.Xcom)); % mean x value.
+        tracks(i).mean_yvalue = mean(data{i}(1:end,ID.Ycom)); % mean y value.
+        % Set spatial origin to position of first point in track:
+        tracks(i).xvalues_offset = tracks(i).xvalues - (tracks(i).xvalues(1)); % xvalues relative to the first point in the trajectory.
+        tracks(i).yvalues_offset = tracks(i).yvalues - (tracks(i).yvalues(1)); % % yvalues relative to the first point in the trajectory.
+        tracks(i).msd_unavg = tracks(i).xvalues_offset.^2+tracks(i).yvalues_offset.^2; % absolute squared displacement from the origin (0,0): x^2 + y^2.
+        % Set time origin to first point in track:
+        tracks(i).timerel = tracks(i).timeabs-tracks(i).timeabs(1); % Time relative to first point in track. Set the first frame analysed as time zero reference (not used for now).
+        % Calculate and add to structure the 2D mean square displacement (msd):
+        tracks(i) = getDisplacement(tracks(i),tsamp); % calculate msd and its error and add it to result structure.
+        % getDisplacement.m adds the following fields to the tracks structure:
+        % 'deltaTime','msd','errorMsd','errorMsdRelPercent' and 'disp'.
     else
         % save indices to delete later:
-        del(i) = i;     
+        del(i) = i;
     end
     
 end
@@ -379,7 +384,7 @@ good_track_numbers = good_tracks.good_track_numbers;
 
 
 
-%% Loop selected trajectories:
+%% Loop through selected trajectories:
 
 n_good_tracking = 1; % initialise index for trajs with good tracking which are saved within loop.
 

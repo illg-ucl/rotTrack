@@ -101,7 +101,7 @@ for i = 1:length(videoLabel)
    
    % Further process tracks to produce one plot and excel file per track:
    % showManyParticleTrajAnalysis(image_label,data_set_label,n_traj_start,n_traj_end,start_frame,tsamp,pixelsize_nm,showVideo,saveAvi,minPointsTraj)
-   processedTrajs{i} = showManyParticleTrajAnalysis(videoLabel{i},1,'end',1,0.0333,1,1,1,minPointsTraj);
+   processedTrajs{i} = showManyParticleTrajAnalysis(videoLabel{i},data_set_label,1,'end',1,0.0333,1,0,1,minPointsTraj);
    % save processed results:
    save 'resultTracks' 'processedTrajs'
 end
