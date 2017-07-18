@@ -259,11 +259,12 @@ for n = n_traj_start:n_traj_end
 %         
 %         close(findobj('Tag','Data video')); % close video figure;
         
-        disp(['Track number ',num2str(n),' out of ' num2str(n_trajs_analysed) ' tracks:'])
+%        disp(['Track number ',num2str(n),' out of ' num2str(n_trajs_analysed) ' tracks:'])
         
         good_track_numbers = [good_track_numbers n]; % append to good_tracks (track numbers) vector.
         
-    end
+        
+    end 
     
 %     % Request user input: for GOOD tracking or not:
 %     good_tracking_flag = input('Is the tracking "good" for this trajectory? (1 for "yes", anything else for "no"): '); 
@@ -274,6 +275,9 @@ for n = n_traj_start:n_traj_end
 %     end
     
 end
+
+disp(['The number of tracks that fullfill all input conditions are: ' num2str(length(good_track_numbers))])
+
 
 % OUTPUT: structure with two fields;
 good_tracks.image_label = image_label;

@@ -133,7 +133,7 @@ linkTrajSegmentsParticles(image_label,1,78,t1,'test');
 % it to be considered (we don't want to analyse tracks with only a few
 % points that might appear due to suboptimal tracking when two particles are
 % very close together):
-plotParticleTrajNumbers(image_label,10)
+plotParticleTrajNumbers(image_label,data_set_label,10)
 cd(data_folder); % return to data folder.
 
 % Note: the code does not work optimally for particles that are close together

@@ -27,12 +27,19 @@ function scriptToAnalyseManyVideos
 
 data_set_label = 'analysis';
 
+% Maximum size of particle length (major axis of fitted ellipsoid in
+% pixels) for particle to be accepted:
+maxMajorAxisLength = 60;
+% minimum number of points in track for it to be accepted:
+minPointsTraj = 10;
+
 % Make sure current directory is the directory containing the video files:
 data_folder = cd;
 
 % Choose video file extension:
 videoFile_extension = '.m4v';
 
+%% Regions to exclude from analysis:
 % Exclude certain region from all images in all videos.
 % Regions to exclude are given by start coordinates (x_start, y_start) for
 % top left corner of rectangle on image and end coordinates (x_end, y_end)
@@ -65,6 +72,8 @@ for k=1:length(listVideoNames)
     videoLabel{k} = fullName(1:(pos-1)); 
 end
 
+
+
 %% Loop through videos to analyse them:
 
 % for i = 1:length(videoLabel)   
@@ -79,18 +88,15 @@ end
 %    linkTrajSegmentsParticles(videoLabel{i},1,'end',tracks{i},data_set_label);
 % 
 %    % Plot and save particle numbers on png:
-%    plotParticleTrajNumbers(videoLabel{i},10); 
+%    plotParticleTrajNumbers(videoLabel{i},data_set_label,10); 
 %    cd(data_folder);
+%    
+%    close all
 % end
     
  
 %% Loop through videos to further analyse tracks:
 
-% Maximum size of particle length (major axis of fitted ellipsoid in
-% pixels) for particle to be accepted:
-maxMajorAxisLength = 60;
-% minimum number of points in track for it to be accepted:
-minPointsTraj = 6;
 
 for i = 1:length(videoLabel)   
    i
@@ -101,7 +107,7 @@ for i = 1:length(videoLabel)
    
    % Further process tracks to produce one plot and excel file per track:
    % showManyParticleTrajAnalysis(image_label,data_set_label,n_traj_start,n_traj_end,start_frame,tsamp,pixelsize_nm,showVideo,saveAvi,minPointsTraj)
-   processedTrajs{i} = showManyParticleTrajAnalysis(videoLabel{i},data_set_label,1,'end',1,0.0333,1,0,1,minPointsTraj);
+   processedTrajs{i} = showManyParticleTrajAnalysis(videoLabel{i},data_set_label,1,'end',1,0.0333,1,1,1,minPointsTraj);
    % save processed results:
    save 'resultTracks' 'processedTrajs'
 end
