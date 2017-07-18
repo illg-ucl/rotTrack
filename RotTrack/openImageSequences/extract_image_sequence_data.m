@@ -44,11 +44,11 @@ function [numFrames frame_Ysize frame_Xsize image_data image_path] = extract_ima
 
 %% Initial stuff
 
-dvImagePath0 = dir(strcat('*',image_label,'*.dv')); % Image sequence data path if the image is a .dv file.
-sifImagePath0 = dir(strcat('*',image_label,'*.sif')); % Image sequence data path if the image is a .sif file.
-tifImagePath0 = dir(strcat('*',image_label,'*.tif')); % Image sequence data path if the image is a .tif file.
-m4vImagePath0 = dir(strcat('*',image_label,'*.m4v')); % Image sequence data path if the image is a .m4v file.
-matImagePath0 = dir(strcat('*',image_label,'*.mat')); % Image sequence data path if the image is a .mat file.
+dvImagePath0 = dir(strcat('*',image_label,'.dv')); % Image sequence data path if the image is a .dv file.
+sifImagePath0 = dir(strcat('*',image_label,'.sif')); % Image sequence data path if the image is a .sif file.
+tifImagePath0 = dir(strcat('*',image_label,'.tif')); % Image sequence data path if the image is a .tif file.
+m4vImagePath0 = dir(strcat('*',image_label,'.m4v')); % Image sequence data path if the image is a .m4v file.
+matImagePath0 = dir(strcat('*',image_label,'.mat')); % Image sequence data path if the image is a .mat file.
 
 % Error control:
 % Sometimes we use a .mat file containing the good track numbers with a name which contains also
