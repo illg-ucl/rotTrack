@@ -218,6 +218,10 @@ disp(['TRAJECTORY number: ',num2str(n_traj)])
 disp(['The number of data points in this trajectory is: ',num2str(nPointsInTrack)]) 
 
 
+% if n_traj==50
+%     n_traj
+% end
+
 %% Create new directory for saving trajectory-analysis results for this image sequence:
 
 % Make new folder (new directory) to save trajectory analysis results:
@@ -497,14 +501,19 @@ results_mobility.fit_msd_conf_rsq = fit_msd_conf_rsq;
 % Plot only msd data which has relative error < 150% :
 subplot(2,3,4);
 errorbar(xdata_msd,ydata_msd,halfErrorBars,halfErrorBars,'.b'); 
-xlim([0 max(xdata_msd)]); 
-ylim([-0.5*max(ydata_msd) 2.5*max(ydata_msd)]);  
+try % error control, if setting limits fails, do not set:
+    xlim([0 max(xdata_msd)]);
+    ylim([-0.5*max(ydata_msd) 2.5*max(ydata_msd)]);
+catch ME4
+    disp(ME4.message);
+end
 hold on;
 % Plot msd fits:
 plot(fit_msd_line,'k'); % plot linear fit to msd data as a black line.
-try % error control, if fit to saturating curve failed, do not plot:s
+try % error control, if fit to saturating curve failed, do not plot:
     plot(fit_msd_conf,'r'); % plot saturating-curve fit to msd data as a red line.
-catch ME3 % catch error to avoid getting out of the entire function which is runnings
+catch ME5 % catch error to avoid getting out of the entire function which is runnings
+    disp(ME5.message);
 end
 legend('hide');
 xlabel('\Deltat (s)'); 
