@@ -79,23 +79,23 @@ end
 
 %% Loop through videos to analyse them:
 
-for i = 1:length(videoLabel)   
-   i
-   videoLabel{i}
-   % Track particles in videos:
-   tracks{i} = FindTrajectsParticles(videoLabel{i},1,'end',excludedRegions);
-   
-   % save tracking results:
-   save 'resultStructures' 'tracks'
-   
-   linkTrajSegmentsParticles(videoLabel{i},1,'end',tracks{i},data_set_label);
-
-   % Plot and save particle numbers on png:
-   plotParticleTrajNumbers(videoLabel{i},data_set_label,10); 
-   cd(data_folder);
-   
-   close all
-end
+% for i = 1:length(videoLabel)   
+%    i
+%    videoLabel{i}
+%    % Track particles in videos:
+%    tracks{i} = FindTrajectsParticles(videoLabel{i},1,'end',excludedRegions);
+%    
+%    % save tracking results:
+%    save 'resultStructures.mat' 'tracks'
+%    
+%    linkTrajSegmentsParticles(videoLabel{i},1,'end',tracks{i},data_set_label);
+% 
+%    % Plot and save particle numbers on png:
+%    plotParticleTrajNumbers(videoLabel{i},data_set_label,10); 
+%    cd(data_folder);
+%    
+%    close all
+% end
     
  
 %% Loop through videos to further analyse tracks:
@@ -112,6 +112,6 @@ for i = 1:length(videoLabel)
    % showManyParticleTrajAnalysis(image_label,data_set_label,n_traj_start,n_traj_end,start_frame,tsamp,pixelsize_nm,showVideo,saveAvi,minPointsTraj)
    processedTrajs{i} = showManyParticleTrajAnalysis(videoLabel{i},data_set_label,1,'end',1,0.0333,1,1,1,minPointsTraj);
    % save processed results:
-   save 'resultTracks' 'processedTrajs'
+   save 'resultTracks.mat' 'processedTrajs'
 end
 
