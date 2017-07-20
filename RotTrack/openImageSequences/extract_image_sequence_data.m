@@ -29,7 +29,10 @@ function [numFrames frame_Ysize frame_Xsize image_data image_path] = extract_ima
 %
 % Inputs: 
 % image_label: string that labels a given image sequence found in current
-% folder (e.g.'513', '490', etc...) 
+% folder. The code finds the path of the image file automatically based on a string label 
+% that is equal to the file name without the file extension. For example,
+% for image video file "210217r25.tif", an appropriate label would be the
+% string '210217r25'. This will be used throughout the entire RotTrack code.
 %
 % Outputs:
 % numFrames: number of frames in the image sequence.
@@ -44,11 +47,11 @@ function [numFrames frame_Ysize frame_Xsize image_data image_path] = extract_ima
 
 %% Initial stuff
 
-dvImagePath0 = dir(strcat('*',image_label,'.dv')); % Image sequence data path if the image is a .dv file.
-sifImagePath0 = dir(strcat('*',image_label,'.sif')); % Image sequence data path if the image is a .sif file.
-tifImagePath0 = dir(strcat('*',image_label,'.tif')); % Image sequence data path if the image is a .tif file.
-m4vImagePath0 = dir(strcat('*',image_label,'.m4v')); % Image sequence data path if the image is a .m4v file.
-matImagePath0 = dir(strcat('*',image_label,'.mat')); % Image sequence data path if the image is a .mat file.
+dvImagePath0 = dir(strcat(image_label,'.dv')); % Image sequence data path if the image is a .dv file.
+sifImagePath0 = dir(strcat(image_label,'.sif')); % Image sequence data path if the image is a .sif file.
+tifImagePath0 = dir(strcat(image_label,'.tif')); % Image sequence data path if the image is a .tif file.
+m4vImagePath0 = dir(strcat(image_label,'.m4v')); % Image sequence data path if the image is a .m4v file.
+matImagePath0 = dir(strcat(image_label,'.mat')); % Image sequence data path if the image is a .mat file.
 
 % Error control:
 % Sometimes we use a .mat file containing the good track numbers with a name which contains also

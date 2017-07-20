@@ -65,7 +65,8 @@ end
 % List of video file names:
 listVideoNames = {listVideoNames0.name}; % cell array of strings with video file names.
 
-% Generate list of file labels, videoLabel:
+% Generate list of file labels, videoLabel, containing everything in the
+% file name that comes before the file extension:
 for k=1:length(listVideoNames)
     fullName = listVideoNames{k};
     pos = strfind(fullName,videoFile_extension); % position of the start of the string videoFile_extension in the file name.
@@ -98,7 +99,7 @@ end
 %% Loop through videos to further analyse tracks:
 
 
-for i = 1:length(videoLabel)   
+for i = 36:length(videoLabel)   
    i
    videoLabel{i}
    % Go through tracks, decide which are "good" ones and save them to .mat

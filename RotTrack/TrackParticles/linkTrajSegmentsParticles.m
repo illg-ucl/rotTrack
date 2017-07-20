@@ -28,13 +28,16 @@ function linkTrajSegmentsParticles(image_label,start_frame,end_frame,particle_re
 % Trajectory data results are exported to an .xls file.
 %
 % INPUTS:
-% image_label: string such as '513', '490', etc... which corresponds to a
-% certain label that is part of the name of the image sequence.
-% start_frame (number) and end_frames (can be number or 'end') are the frames through which the loop runs to plot the result trajectories.
+% - image_label: string that labels a given image sequence found in current
+% folder. The code finds the path of the image file automatically based on a string label 
+% that is equal to the file name without the file extension. For example,
+% for image video file "210217r25.tif", an appropriate label would be the
+% string '210217r25'. This will be used throughout the entire RotTrack code.
+% - start_frame (number) and end_frames (can be number or 'end') are the frames through which the loop runs to plot the result trajectories.
 % They should be the same as previously used to produce particle_results using FindTrajectsParticles.m.
-% particle_results: parameters (particle_results{1}) and calculated trajectory segments (particle_results{2}). It is the output of function FindTrajects.m 
+% - particle_results: parameters (particle_results{1}) and calculated trajectory segments (particle_results{2}). It is the output of function FindTrajects.m 
 % (it is a cell array with two elements. The second one is a structure array containing all segment results).
-% data_set_label: is a user-defined label for the data set, that will form
+% - data_set_label: is a user-defined label for the data set, that will form
 % part of the name of the output excel file. E.g.: 'ATPase-GFP'.
 %
 % Example of how to call this function:

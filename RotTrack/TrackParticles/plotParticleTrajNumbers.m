@@ -31,7 +31,11 @@ function plotParticleTrajNumbers(image_label,data_set_label,minPointsTraj)
 % points in them are looked at.
 %
 % INPUTS: 
-% - 'image_label' string that labels the image sequence under analysis, e.g. '101'.
+% - image_label: string that labels a given image sequence found in current
+% folder. The code finds the path of the image file automatically based on a string label 
+% that is equal to the file name without the file extension. For example,
+% for image video file "210217r25.tif", an appropriate label would be the
+% string '210217r25'. This will be used throughout the entire RotTrack code.
 % - data_set_label: string that labels set of data or parameters. Use
 % same as in input to linkTrajSegmentsParticles.m.
 % - minPointsTraj: minimum number of data points that a trajectory must have in order to be

@@ -53,8 +53,8 @@ data_folder = cd;
 % - 4. Define image_label: 
 image_label = '5mT-1Hz';
 % The code works finding paths and files automatically based on a string label 
-% that is part of the file name. For example, for image video file "210217r25.tif", 
-% an appropriate label would be the string '25'. This will be used
+% that is equal to the file name (without the file extension). For example, for image video file "210217r25.tif", 
+% an appropriate label would be the string '210217r25'. This will be used
 % throughout the analysis.
 % 
 % TRICK: If you don't know the number of frames in a given image you can do:
