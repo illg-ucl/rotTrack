@@ -276,7 +276,7 @@ ylabel('y-y0 (nm)');
 
 %% Orientation angle versus time
 angleDeg = analysedAllTraj(n_traj).AngleDegrees;
-angleDegPos = angleDegToPos(analysedAllTraj(n_traj).AngleDegrees); % orientation angle by fitting ellipse.
+angleDegPos = angleDegToPos(angleDeg); % orientation angle by fitting ellipse.
 % angleDeg is the angle originally found, between -90 and 90 degrees.
 % angleDegPos is a corrected positive cyclic angle that can be larger than
 % 360 degrees if there are many turns of the particle.
