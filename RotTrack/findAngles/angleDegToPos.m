@@ -49,7 +49,7 @@ function angle_pos = angleDegToPos(angle_list)
 angle_jump = zeros(length(angle_list)-1,1); % initialise column vector
 
 for i = 1:length(angle_jump)
-    angle_jump(i) = angle_list(i+1)-angle_list(i);
+    angle_jump(i) = angle_list(i+1) - angle_list(i);
 end
 
 % Jumps in angle would be -180 degreees for ideal anticlockwise rotation. 

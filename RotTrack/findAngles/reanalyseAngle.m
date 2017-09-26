@@ -1,4 +1,4 @@
-function reanalyseAngle(excelFileName,frameRateReal)
+function reanalyseAngle(excelFileName,frameRateReal,thresh_slope)
 %
 % ========================================
 % RotTrack.
@@ -23,12 +23,34 @@ function reanalyseAngle(excelFileName,frameRateReal)
 % url          = {https://github.com/illg-ucl/rotTrack}}
 % ========================================
 %
+% Reanalyse a set of excel files containing track data for frame number, time, angle,
+% etc, to obtain angular velocity and frequency of rotation, postprocessing
+% the angle and fitting the appropriate linear regions. Use input frame
+% rate. All valid for clockwise rotation.
+%
 % INPUTS:
 % - excelFileName: string with the name of the Excel file containing the original extracted
 % angle and the postprocessed angle (result of showManyParticleTrajAnalysis.m).
 % - frameRateReal: Actual frame rate for the data in frames per second. In
 % case analysis needs to be corrected. For Sonia+Andrea's data, frame rate
 % is 15 frames per second.
+% - thresh_slope: threshold slope in degrees/s. Only linear data with a
+% positive slope larger than this threshold is fitted to obtain angular
+% velocity and rotation frequency. 360deg/s corresponds to 1Hz. 
+% E.g., 250-300deg/s is a good threshold for 10Hz field. For 1Hz field, ~130deg/s is better.
+%
+% OUTPUTS:
+% A new png graph file is generated with name "bis" appended to original
+% name, containing the new angle vs time plot, fits and fit results for individual linear sections. 
+% A new Excel file "bis" with new sheets is created with the
+% revised analysis for the postprocessed angle vs time and for the data and
+% fit results for the relevant linear sections.
+
+% PARAMETERS
+% - minSectionPoints: minimum number of points in a linear angle vs time
+% section for it to be fitted to a line to obtain the slope (angular
+% velocity):
+minSectionPoints = 6;
 
 % Open Excel file and read the data:
 
@@ -59,47 +81,86 @@ angleDegreesPos2 = angleDegToPos(angleDegrees); % use corrected postprocessing f
 disp('Excel file read successfully.');
 
 
+%% Automatically find segments to fit to a line
+% Find linear segments with second derivative equal to zero and fit those
+% linear segments that have at least 6-10 points in them.
+
+% Calculate numerical first and second derivatives of angle data (using points two frames away):
+deltaTime = timeabsReal(2)-timeabsReal(1); 
+diff1 = zeros(length(angleDegreesPos2)-2,1); % initialise column vector
+for i = 1:length(diff1)
+    % first derivative:
+    diff1(i) = (angleDegreesPos2(i+2) - angleDegreesPos2(i))/(2*deltaTime);
+end
+% Smooth out noise by calculating a simple ('s') moving average:
+diff1_smooth = tsmovavg(diff1, 's', 3, 1); % Note that first two points are lost.
+
+% % Aid plots:
+% plot(timeabsReal,angleDegreesPos2,'.-r')
+% hold on;
+% plot(timeabsReal(1:length(timeabsReal)-2),diff1,'.-k')
+% plot(timeabsReal(1:length(timeabsReal)-2),diff1_smooth,'.-g')
+% min(diff1_smooth)
+% close;
+
+% Positions with a slope larger than the input threshold slope:
+pos_largeSlope = find(diff1_smooth > thresh_slope);
+% Find differences:
+pos_diffs = zeros(length(pos_largeSlope)-1,1);
+for i = 1:length(pos_diffs)
+    pos_diffs(i) = pos_largeSlope(i+1) - pos_largeSlope(i);
+end
+% Positions of jumps:
+pos_jumps = find(pos_diffs~=1);
+% Separate into separate sections of large enough slope:
+k_start = 1; % initialise
+for j = 1:length(pos_jumps)+1
+    if j == length(pos_jumps)+1 % do differently for last section
+        k_end = length(pos_largeSlope);
+    else
+        k_end = pos_jumps(j);
+    end
+    section{j} = pos_largeSlope(k_start:k_end); % section with points with large slope
+    k_start = k_end + 1;
+end
+
+% We only analyse sections with a number of points larger than
+% minSectionPoints:
+sectionsToAnalyse = [];
+for i = 1:size(section,2)
+    if size(section{i},1) > minSectionPoints
+        sectionsToAnalyse = [sectionsToAnalyse; i];
+    end
+end
+
 %% Fit orientation angle versus time to a LINE to get angular velocity of
 % particle rotation:
-linearFunction = fittype('A + B*x','independent','x'); % define linear funtion to fit to, with 'x' as independent variable;
-options = fitoptions('Method','NonlinearLeastSquares');  % Creates a structure of fit options with fields StartPoint, Lower, Upper, etc.
-% CHECK: values of guesses:
-guess_A = 0; % offset guess in degrees.
-guess_B = 360; % slope guess in degrees/s when correct frame rate has been entered.
-options.StartPoint = [guess_A guess_B];
-try % error control
-    [fit_angle gof] = fit(timeabsReal,angleDegreesPos2,linearFunction,options);
-    fit_param_values = coeffvalues(fit_angle); % parameter values resulting from fit. First one is 'A', second one is 'B'.
-    % Use coeffnames(fit_msd_line) to find out order of parameters.
-    fit_angle_offset = fit_param_values(1); % offset from fit in deg.
-    fit_angle_slope = fit_param_values(2); % slope from fit in deg/s.
-    fit_angle_rsq = gof.rsquare; % rsquare coefficient of fit.
-    errors = confint(fit_angle,0.682); % 68.2% confidence interval for each fit parameter (lower and upper bounds as first and second rows).
-    errorSTDEV = (errors(2,:)-errors(1,:))/2; % Standard deviation of each fit parameter (probability to be between -STDEV and +STDEV is 68.2%).
-    fit_angle_offset_stDev = errorSTDEV(1);
-    fit_angle_slope_stDev = errorSTDEV(2);
-catch ME1 % catch error. If there was an error:
-    fit_angle = [0]; % needed for plot later.
-    fit_angle_offset = []; 
-    fit_angle_offset_stDev = []; 
-    fit_angle_slope = []; 
-    fit_angle_slope_stDev = []; 
-    fit_angle_rsq = []; 
+
+for i = 1:length(sectionsToAnalyse)
+    vectorPos = section{sectionsToAnalyse(i)}; % positions to analyse in angle vector
+    angleToAnalyse{i} = angleDegreesPos2(vectorPos);
+    timeToAnalyse{i} = timeabsReal(vectorPos);    
+    % Fit to a line:
+    results_angle{i} = fitToLine(timeToAnalyse{i},angleToAnalyse{i});  
 end
-disp(' ') % empty line
-disp('Fit for orientation angle versus time to a line:') 
-disp([' fit_angle_offset = ',num2str(fit_angle_offset),' +- ',num2str(fit_angle_offset_stDev),';   fit_angle_slope = ',num2str(fit_angle_slope),' +- ',num2str(fit_angle_slope_stDev)]) 
-disp([' fit_angle_rsq = ',num2str(fit_angle_rsq)]) % r squared of fit.
 
 % Plot angle versus time:
+figure;
 subplot(1,2,1);
 plot(timeabsReal,angleDegrees,'.-b')
 hold on;
 plot(timeabsReal,angleDegreesPos2,'.-r')
-% Plot angle versus time linear fit:
-try % error control, if fit failed, do not plot
-    plot(fit_angle,'k'); % plot linear fit to msd data as a black line.
-catch ME3
+% Plot angle versus time linear fits on same plot:
+for i = 1:length(sectionsToAnalyse)
+    try % error control, if fit failed, do not plot
+        xdata = timeToAnalyse{i};
+        offset = results_angle{i}.fit_result_offset;
+        slope = results_angle{i}.fit_result_slope;
+        ydata = offset + slope*xdata;
+        plot(xdata,ydata,'k'); % plot linear fit as black line only over fitted data range.
+        % plot(results_angle{i}.fit_result,'b'); % plot linear fit over entire data range as a black line.
+    catch ME3
+    end
 end
 xlabel('t_{abs} (s)'); 
 ylabel('orientation angle (deg)');
@@ -108,21 +169,39 @@ xlim([0 max(timeabsReal)]);
 legend('hide');
 hold off;
 
+
+% Calculate final frequency of rotation for particle in Hz, as mean and
+% stdev of all slopes fitted or as the only slope fitted with its stdev error:
+freqRotHz = [];
+for i = 1:length(sectionsToAnalyse)
+    freqRotHz = [freqRotHz, results_angle{i}.fit_result_slope/360];
+end
+if length(freqRotHz)>1
+    freqRotHz_final = mean(freqRotHz);
+    freqRotHz_stDev = std(freqRotHz);
+else
+    freqRotHz_final = freqRotHz(1);
+    freqRotHz_stDev = results_angle{1}.fit_result_slope_stDev/360;
+end
+
+
 % Display fit results:
 subplot(1,2,2); 
 axis off; 
 % Define different lines of text:
-str1(1) = {'Plots shown are for TRAJECTORY '};
-str1(2) = {excelFileName};
-str1(3) = {'Angular velocity, slope from fit:'};
-str1(4) = {[num2str(fit_angle_slope),' +- ',num2str(fit_angle_slope_stDev),' degrees/s.']};
-str1(5) = {'Offset from fit:'};
-str1(6) = {[num2str(fit_angle_offset),' +- ',num2str(fit_angle_offset_stDev),' degrees/s.']};
-str1(7) = {'Rsquared of fit:'};
-str1(8) = {num2str(fit_angle_rsq)};
-str1(9) = {'Frequency of rotation:'};
-str1(10) = {[num2str(fit_angle_slope/360),' +- ',num2str(fit_angle_slope_stDev/360),' Hz.']};
-str1(11) = {['Frame rate used for analysis (fps):',num2str(frameRateReal)]};
+str1(1) = {excelFileName};
+str1(2) = {['Frame rate (fps) used: ',num2str(frameRateReal)]};
+str1(3) = {['Mean final Freq(Hz): ',num2str(freqRotHz_final),' +- ',num2str(freqRotHz_stDev)]};
+
+k = 6; % total number of writen rows below
+for i = 1:length(sectionsToAnalyse)
+    str1(4+k*(i-1)) = {'Angular velocity, slope from fit:'};
+    str1(5+k*(i-1)) = {[num2str(results_angle{i}.fit_result_slope),' +- ',num2str(results_angle{i}.fit_result_slope_stDev),' degrees/s.']};
+    str1(6+k*(i-1)) = {[num2str(results_angle{i}.fit_result_slope/360),' +- ',num2str(results_angle{i}.fit_result_slope_stDev/360),' Hz.']};   
+    str1(7+k*(i-1)) = {'Offset from fit:'};
+    str1(8+k*(i-1)) = {[num2str(results_angle{i}.fit_result_offset),' +- ',num2str(results_angle{i}.fit_result_offset_stDev),' degrees/s.']};
+    str1(9+k*(i-1)) = {['R-squared of fit: ',num2str(results_angle{i}.fit_result_rsq)]};
+    end
 text(0,0.5,str1)
 
 
@@ -147,27 +226,34 @@ processedTraj{n_trackData}.timeabsReal = timeabsReal;
 processedTraj{n_trackData}.angleDegrees = angleDegrees; % orientation angle by fitting ellipse.
 processedTraj{n_trackData}.angleDegreesPos2 = angleDegreesPos2; % positive orientation angle in degrees, cyclic, corrected.   
 
-% Orientation results, angular velocity from fits (numbers):
-n_angle = 2;
-results_angle.fit_angle_offset = fit_angle_offset; 
-results_angle.fit_angle_offset_stDev = fit_angle_offset_stDev;
-results_angle.fit_angle_slope = fit_angle_slope;
-results_angle.fit_angle_slope_stDev = fit_angle_slope_stDev;
-results_angle.fit_angle_rsq = fit_angle_rsq;
-results_angle.fit_rotationFreqHz = fit_angle_slope/360;
-results_angle.fit_rotationFreqHz_stDev = fit_angle_slope_stDev/360;
-
-processedTraj{n_angle} = results_angle;
-
-% Save corrected results in two other sheets called "Track data corrected"
-% and "Angular veloc corrected" within the input excel file:
-output_filename = excelFileName; % name of excel file to save to.
+% Save corrected results in several new sheets called "Track data corrected"
+% and "Angular veloc corrected i" within the input excel file:
+warning off MATLAB:xlswrite:AddSheet % turn warning off when new sheet added to excel file.
+output_filename = [base_name,'bis','.xls']; % name of excel file to save to.
 
 dataForSheet1 = [fieldnames(processedTraj{n_trackData})'; num2cell(cell2mat(struct2cell(processedTraj{n_trackData})'))]; % vectors
-dataForSheet2 = [fieldnames(processedTraj{n_angle}) struct2cell(processedTraj{n_angle})]; % numbers
+xlswrite(output_filename,dataForSheet1,'Track data corrected'); % write data to sheet 'Track data corrected' in excel file.
 
-warning off MATLAB:xlswrite:AddSheet % turn warning off when new sheet added to excel file.
+for i = 1:length(sectionsToAnalyse)   
+    sheetName1 = ['Data section ',num2str(i)];
+    columnTitles = {'timeToAnalyse(s)', 'angleToAnalyse(deg)'};
+    vectorsToSave =  num2cell(cell2mat({timeToAnalyse{i} angleToAnalyse{i}}));
+    dataForSheetA = [columnTitles; vectorsToSave];
+    xlswrite(output_filename,dataForSheetA,sheetName1); % write data to sheet in excel file.
+    
+    sheetName2 = ['AngVelocFit Section ',num2str(i)];
+    dataForSheetB = [fieldnames(results_angle{i}) struct2cell(results_angle{i})]; % numbers
+    xlswrite(output_filename,dataForSheetB,sheetName2); % write data to sheet in excel file.    
+end
 
-xlswrite(output_filename,dataForSheet1,'Track data corrected'); % write data to sheet 'Track data' in excel file.
-xlswrite(output_filename,dataForSheet2,'Angular veloc corrected'); % write data to sheet 'Angular veloc results' in excel file.
+% Save final frequency (mean of varios slopes obtained) in another sheet:
+dataForSheetFinalFreq = [{'finalFreqHz_mean'; 'finalFreqHz_stDev'}, num2cell(cell2mat({freqRotHz_final; freqRotHz_stDev}))];
+xlswrite(output_filename,dataForSheetFinalFreq,'finalFreqHz');
+    
+% Save re-analysis parameters:
+dataReanalysisParams = [{'frameRateReal(fps)'; 'thresh_slope(deg/s)'; 'minSectionPoints(frames)'}, num2cell(cell2mat({frameRateReal; thresh_slope; minSectionPoints}))];
+xlswrite(output_filename,dataReanalysisParams,'Params Reanalysis');
+        
+
+
 
