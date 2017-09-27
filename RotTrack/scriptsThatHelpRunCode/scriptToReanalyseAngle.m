@@ -31,15 +31,18 @@ function scriptToReanalyseAngle
 
 % PARAMETERS:
 frameRate = 15; % frame rate in frames per second.
-thresh_slope = 150; % minimum slope in a linear section for it to be fitted to a line. 
+thresh_slope = 130; % minimum slope in a linear section for it to be fitted to a line. 
 % Value in degrees/s. 360deg/s corresponds to a frequency of 1Hz.
 % E.g., 250-300 deg/s is a good threshold for 10Hz rotating field. 
-% For 1Hz field, ~130 deg/s is better.
+% For 5Hz field, ~200 deg/s is good.
+% For 1Hz field, ~130 deg/s is good.
+minSectionPoints = 5; % minimum number of points in a linear section (in angle vs time plot)
+% for it to be fitted to a line to obtain the slope (angular velocity).
 
 % Find excel files in current directory:
 list_excelFiles = dir('*.xls');
 
-for i = 2:length(list_excelFiles)
-   reanalyseAngle(list_excelFiles(i).name,frameRate,thresh_slope); 
+for i = 1:length(list_excelFiles)
+   reanalyseAngle(list_excelFiles(i).name,frameRate,thresh_slope,minSectionPoints); 
 end
 
