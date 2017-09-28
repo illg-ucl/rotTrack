@@ -23,7 +23,7 @@ function reanalyseAngle(excelFileName,frameRateReal,thresh_slope,minSectionPoint
 % url          = {https://github.com/illg-ucl/rotTrack}}
 % ========================================
 %
-% Reanalyse a set of excel files containing track data for frame number, time, angle,
+% Reanalyse one Excel file containing track data for frame number, time, angle,
 % etc, to obtain angular velocity and frequency of rotation. The raw angle
 % is postprocessed assuming anti-clockwise rotation. Then the linear
 % sections with a large enough slope (above input thresh_slope) in the 

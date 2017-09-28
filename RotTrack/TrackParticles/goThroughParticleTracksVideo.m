@@ -1,4 +1,4 @@
-function good_tracks = goThroughParticleTracksVideo(image_label,data_set_label,n_traj_start,n_traj_end,minPointsTraj,maxMajorAxisLength) 
+function good_tracks = goThroughParticleTracksVideo(image_label,data_set_label,n_traj_start,n_traj_end,minPointsTraj,maxMajorAxisLength,showVideos) 
 %
 % good_tracks = goThroughParticleTracksVideo(image_label,data_set_label,n_traj_start,n_traj_end,minPointsTraj,maxMajorAxisLength)  
 %
@@ -53,6 +53,12 @@ function good_tracks = goThroughParticleTracksVideo(image_label,data_set_label,n
 % (A value of at least 6 needs to be used for all methods in
 % "showTrajAnalysis.m" (and therefore "showManyTrajAnalysis.m") to work
 % well).
+% - showVideos: 1 if user wants to see one video for each track and provide
+% manual input as to whether each trajectory is good or not. This can take
+% a long time if there are many tracks. Set to 0 to not show any videos and 
+% accept all tracks with more than "minPointsTraj" points and a max length 
+% below "maxMajorAxisLength" as good tracks without requiring user input for each track.
+
 % -----------------
 % IMPORTANT NOTE!!!: The values of all inputs: "image_label",
 % "n_traj_start", "n_traj_end" and "minPointsTraj" here need to be the same
@@ -226,57 +232,61 @@ for n = n_traj_start:n_traj_end
     
     if mean(majAxisLength) < maxMajorAxisLength
         
-%         % Show video of trajectory overlaid on actual image:
-%         % Loop through frames in each trajectory analysed:
-%         figure('Tag','Data video','Units','normalized','Position',[0 1 0.2 0.2]); % Figure number 2.
-%         % 'position' vector is [left, bottom, width, height].
-%         % left, bottom control the position at which the window appears when it
-%         % pops.
-%         
-%         for k = 1:length(frames_list) % loop through frames in track
-%             
-%             frame = image_data(frames_list(k)).frame_data; % extract frame data which is stored in field 'frame_data'.
-%             frame = double(frame);
-%             
-%             imshow(frame,[],'Border','tight'); % show image scaled between its min and max values ([]).
-%             hold on;
-%             
-%             plot(x_values(k),y_values(k),'x','Color','g','MarkerSize',5) % plot accepted particle centres in green.
-%             
-%             % Plot major axis of ellipse to indicate particle orientation:
-%             xpointsMajorAxis = [
-%                 x_values(k) - 0.5*majAxisLength(k)*cos(angles_deg(k)/180*pi)
-%                 x_values(k)
-%                 x_values(k) + 0.5*majAxisLength(k)*cos(angles_deg(k)/180*pi)
-%                 ];
-%             ypointsMajorAxis = [
-%                 y_values(k) + 0.5*majAxisLength(k)*sin(angles_deg(k)/180*pi)
-%                 y_values(k)
-%                 y_values(k) - 0.5*majAxisLength(k)*sin(angles_deg(k)/180*pi)
-%                 ];
-%             plot(xpointsMajorAxis,ypointsMajorAxis,'y','LineWidth',1);
-%             
-%             pause(0.1); % this pause is needed to give time for the plot to appear (0.1 to 0.3 default)
-%             hold off;
-%             
-%         end
-%         
-%         close(findobj('Tag','Data video')); % close video figure;
-        
-%        disp(['Track number ',num2str(n),' out of ' num2str(n_trajs_analysed) ' tracks:'])
-        
-        good_track_numbers = [good_track_numbers n]; % append to good_tracks (track numbers) vector.
-        
-        
-    end 
-    
-%     % Request user input: for GOOD tracking or not:
-%     good_tracking_flag = input('Is the tracking "good" for this trajectory? (1 for "yes", anything else for "no"): '); 
-%     % flag saying if trajectory is a good one or not (bgnd point, not good tracking, etc.).
-
-%     if good_tracking_flag == 1
-%         good_track_numbers = [good_track_numbers n]; % append to good_tracks (track numbers) vector.
-%     end
+        if showVideos == 1
+            
+            % Show video of trajectory overlaid on actual image:
+            % Loop through frames in each trajectory analysed:
+            figure('Tag','Data video','Units','normalized','Position',[0 1 0.2 0.2]); % Figure number 2.
+            % 'position' vector is [left, bottom, width, height].
+            % left, bottom control the position at which the window appears when it
+            % pops.
+            
+            for k = 1:length(frames_list) % loop through frames in track
+                
+                frame = image_data(frames_list(k)).frame_data; % extract frame data which is stored in field 'frame_data'.
+                frame = double(frame);
+                
+                imshow(frame,[],'Border','tight'); % show image scaled between its min and max values ([]).
+                hold on;
+                
+                plot(x_values(k),y_values(k),'x','Color','g','MarkerSize',5) % plot accepted particle centres in green.
+                
+                % Plot major axis of ellipse to indicate particle orientation:
+                xpointsMajorAxis = [
+                    x_values(k) - 0.5*majAxisLength(k)*cos(angles_deg(k)/180*pi)
+                    x_values(k)
+                    x_values(k) + 0.5*majAxisLength(k)*cos(angles_deg(k)/180*pi)
+                    ];
+                ypointsMajorAxis = [
+                    y_values(k) + 0.5*majAxisLength(k)*sin(angles_deg(k)/180*pi)
+                    y_values(k)
+                    y_values(k) - 0.5*majAxisLength(k)*sin(angles_deg(k)/180*pi)
+                    ];
+                plot(xpointsMajorAxis,ypointsMajorAxis,'y','LineWidth',1);
+                
+                pause(0.1); % this pause is needed to give time for the plot to appear (0.1 to 0.3 default)
+                hold off;
+                
+            end
+            
+            close(findobj('Tag','Data video')); % close video figure;
+            
+            disp(['Track number ',num2str(n),' out of ' num2str(n_trajs_analysed) ' tracks:'])
+            
+            % REQUEST USER INPUT: for GOOD tracking or not:
+            good_tracking_flag = input('Is the tracking "good" for this trajectory? (1 for "yes", anything else for "no"): ');
+            % flag saying if trajectory is a good one or not (bgnd point, not good tracking, etc.).
+            
+            if good_tracking_flag == 1
+                good_track_numbers = [good_track_numbers n]; % append to good_tracks (track numbers) vector.
+            end           
+            
+        else % when showVideos is different from 1, all tracks with more than
+            % "minPointsTraj" points and a max length below "maxMajorAxisLength"
+            % are stored as good ones           
+            good_track_numbers = [good_track_numbers n]; % append to good_tracks (track numbers) vector.            
+        end
+    end    
     
 end
 

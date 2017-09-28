@@ -24,8 +24,14 @@ function scriptToReanalyseAngle
 % ========================================
 %
 % Reanalyse a set of excel files containing track data for frame number, time, angle,
-% etc, to obtain angular velocity and frequency of rotation, postprocessing
-% the angle and fitting the appropriate linear regions. All valid for clockwise rotation.
+% etc, to obtain angular velocity and frequency of rotation. The raw angle
+% is postprocessed assuming anti-clockwise rotation. Then the linear
+% sections with a large enough slope (above input thresh_slope) in the 
+% the angle vs time plot are automatically detected and fitted to a line. 
+% The input frame rate is used to convert frame number into time (s).
+%
+% IMPORTANT: calculations assume anti-clockwise rotation.
+%
 % Before running this function, make sure Matlab's current directory is the
 % directory containing the excel files.
 
