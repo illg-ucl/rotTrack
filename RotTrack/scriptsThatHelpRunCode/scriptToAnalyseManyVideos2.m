@@ -107,7 +107,7 @@ for i = 1:length(videoLabel)
    videoLabel{i}
    % Go through tracks, decide which are "good" ones and save them to .mat
    % file in current directory for further processing:
-   good_tracks{i} = goThroughParticleTracksVideo(videoLabel{i},data_set_label,1,'end',minPointsTraj,maxMajorAxisLength); 
+   good_tracks{i} = goThroughParticleTracksVideo(videoLabel{i},data_set_label,1,'end',minPointsTraj,maxMajorAxisLength,0); 
    
    % Further process tracks to produce one plot and excel file per track:
    % showManyParticleTrajAnalysis(image_label,data_set_label,n_traj_start,n_traj_end,start_frame,tsamp,pixelsize_nm,showVideo,saveAvi,minPointsTraj)

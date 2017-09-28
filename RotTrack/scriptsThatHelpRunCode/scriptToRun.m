@@ -139,11 +139,12 @@ cd(data_folder); % return to data folder.
 % Note: the code does not work optimally for particles that are close together
 % and have overlapping diffraction rings, or when there is a very uneven background. 
 
-% - 8. Select good tracks. Two alternative methods:
-% - 8a) Inspect tracks manually on a video to decide which to accept as good:
-% Use function:
-% good_tracks = goThroughParticleTracksVideo(image_label,data_set_label,n_traj_start,n_traj_end,minPointsTraj,maxMajorAxisLength)
-good_tracks = goThroughParticleTracksVideo(image_label,'test',1,'end',6,50); 
+% - 8. Select good tracks. Three alternative methods 8a, 8b and 8c below.
+% - 8a) Inspect tracks manually on a video to decide which to accept as
+% good.
+% Use function goThroughParticleTracksVideo with input showVideos=1:
+% good_tracks = goThroughParticleTracksVideo(image_label,data_set_label,n_traj_start,n_traj_end,minPointsTraj,maxMajorAxisLength,showVideos)
+good_tracks = goThroughParticleTracksVideo(image_label,'test',1,'end',6,50,1); 
 % The above generates the structure:  
 % good_tracks = 
 %            image_label: '5mT-1Hz'
@@ -153,7 +154,7 @@ good_tracks = goThroughParticleTracksVideo(image_label,'test',1,'end',6,50);
 %     good_track_numbers: [5 7 8 12]
 %
 % - 8b) Note, that doing the above is quite slow, particularly for long tracks
-% over long videos. So the alternative is to inspect a few tracks as in 8a),
+% from long videos. So the alternative is to inspect a few tracks as in 8a),
 % make a note of the total number of long-enough tracks (printed on the
 % command window during the analysis using goThroughParticleTracksVideo), then
 % press Control+C to cancel the function evaluation (will generate no output), and 
@@ -166,12 +167,22 @@ good_tracks.n_traj_start = 1;
 good_tracks.n_traj_end = 36;
 good_tracks.minPointsTraj = 6;
 good_tracks.maxMajorAxisLength = 50;
-good_tracks.good_track_numbers = [5 7 8 12]; % All tracks from 1 to 26 except for tracks 4 and 5.
+good_tracks.good_track_numbers = [5 7 8 12]; 
 % Save result (as a .mat file, required for further analysis functions):
 output_filename = strcat('good_tracks_',image_label);
 save(output_filename,'good_tracks') % save variable good_tracks.
 % NOTE: make sure you don't change the name 'good_tracks' to anything else.
 % It is used later by function showManyParticleTrajAanalysis.m.
+% 
+% - 8c) When there are many particles found and long tracks, even 8b) is
+% too tedious. In this case, use function goThroughParticleTracksVideo but
+% set the input showVideos=0. This way, there is no video display or
+% request for user input for each track and all tracks with more than
+% "minPointsTraj" points and a max length below "maxMajorAxisLength" are 
+% accepted as good tracks. The correct output variable "good_tracks"
+% needed for the next step is generated.
+% E.g. good_tracks = goThroughParticleTracksVideo(image_label,'test',1,'end',6,50,0); 
+
 
 % - 9. Analyse each track separatedly.
 % This is based on functions showParticleTrajAnalysis.m and
@@ -179,19 +190,64 @@ save(output_filename,'good_tracks') % save variable good_tracks.
 % Running the line below produces one analysis excel file and graph per track:
 % processedManyTrajs = showManyParticleTrajAnalysis(image_label,data_set_label,n_traj_start,n_traj_end,start_frame,tsamp,pixelsize_nm,showVideo,saveAvi,minPointsTraj) 
 processedTrajs = showManyParticleTrajAnalysis(image_label,'test',1,'end',1,0.0333,1,1,1,6);
+% The analysis for each individual trajectory/track consists of:
+% - Plot orientation angle (degrees) versus time; Calculate a postprocessed 
+% angle and fit all values to a line to get angular velocity in degrees/s.
+% - plot x and y (referenced to first point in track) versus time, 
+% - plot trajectory on the x-y plane.
+% - plot mean square displacement (msd) vs Delta t with error bars first
+% all points, then only points with relative error < 150%. Fit the latter
+% (tries fitting to a line and to a confined curve and saves results).
+% - show the first frame with the trajectory overlaid.
+% - print the trajectory number and other info, including angular velocity from fit.
+% Saves all plots in a .PNG image file and saves also an EXCEL file with
+% all results.
+% IMPORTANT: note that the postprocessing of the raw angle assummes
+% anti-clockwise rotation!! See function angleDegToPos.m.
 
 
-% Reanalyse a set of excel files containing track data for frame number, time, angle,
-% etc, to obtain angular velocity and frequency of rotation. The raw angle
-% is postprocessed assuming anti-clockwise rotation. Then the linear
+% - 10. REANALYSE ANGLE AND ROTATION: If the data is noisy, it is likely
+% that the rotation of the particle is not continuous and smooth. Perhaps
+% there are several linear sections in the postprocessed continous angle
+% plotted vs time, separated by noisy sections. It might be the case that
+% the frame rate entered in step 9 needs to be corrected. 
+% For any of these cases, functions reanalyseAngle.m and
+% scriptToReanalyseAngle.m can be used. 
+% The later reanalyses a set of excel files (generated in step 9) containing 
+% the track data for frame number, time, angle, etc., to obtain angular
+% velocity and frequency of rotation. The raw angle is postprocessed
+% assuming anti-clockwise rotation (function angleDegToPos.m). Then the linear 
 % sections with a large enough slope (above input thresh_slope) in the 
 % the angle vs time plot are automatically detected and fitted to a line. 
 % The input frame rate is used to convert frame number into time (s).
-%
 % IMPORTANT: calculations assume anti-clockwise rotation.
 %
-% Before running this function, make sure Matlab's current directory is the
-% directory containing the excel files.
+% To reanalyse a set of excel files in a given folder, first make sure
+% Matlab's current directory is the directory containing the excel files to
+% reanalyse. Then set the correct inputs in the script
+% "scriptToReanalyseAngle.m" and run in the command window:
+scriptToReanalyseAngle
+%
+% To reanalyse a single file, do e.g.:
+reanalyseAngle('analysis_10mT,1Hz(1)__traj10.xls',15,130,5);
+% reanalyseAngle(excelFileName,frameRateReal,thresh_slope,minSectionPoints)
+% Inputs:
+% - frameRateReal: frame rate for video data in frames per second.
+% - thresh_slope: threshold slope in degrees/s. Only linear data sections with a
+% positive slope larger than this threshold are fitted to obtain angular
+% velocity and rotation frequency. 360deg/s corresponds to 1Hz. 
+% For 1Hz field, a threshold~130deg/s works well.
+% - minSectionPoints: minimum number of points in a single linear section in the angle vs time
+% plot for it to be fitted to a line to obtain the slope (angular velocity).
+% Outputs:
+% A new folder called 'analysis_BIS' is generated, containing the
+% following: 
+% - A new png graph file is generated with name "bis" appended to original
+% name, containing the new angle vs time plot, fits and fit results for individual linear sections. 
+% - A new Excel file "bis" with new sheets is created with the
+% revised analysis for the postprocessed angle vs time and for the data and
+% fit results for the relevant linear sections.
+
 
 
 
