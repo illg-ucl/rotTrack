@@ -25,7 +25,7 @@ function processedTraj = showParticleTrajAnalysis(trajXlsPath,image_data,analyse
 %
 %
 % Analyse and process data for a single trajectory/track (for trajectory number n_traj), for a given image sequence:
-% - Plot orientation angle (degrees) versus time; fit to a line to get
+% - Plot orientation angle (degrees) versus time; fit all points to a line to get
 % angular velocity.
 % - plot x and y (referenced to first point in track) versus time, 
 % - plot trajectory on the x-y plane.
@@ -36,6 +36,7 @@ function processedTraj = showParticleTrajAnalysis(trajXlsPath,image_data,analyse
 % - print the trajectory number and other info, including angular velocity from fit.
 % Saves all plots in a .PNG image file and saves also an excel file with
 % all results.
+% IMPORTANT: note that the postprocessing of the raw angle assummes anti-clockwise rotation!!
 %  
 % NOTE: this function works for short tracks, it only fails if no. of
 % points in track is < 3.
@@ -278,8 +279,9 @@ ylabel('y-y0 (nm)');
 angleDeg = analysedAllTraj(n_traj).AngleDegrees;
 angleDegPos = angleDegToPos(angleDeg); % orientation angle by fitting ellipse.
 % angleDeg is the angle originally found, between -90 and 90 degrees.
-% angleDegPos is a corrected positive cyclic angle that can be larger than
-% 360 degrees if there are many turns of the particle.
+% angleDegPos is a postprocessed positive cyclic angle that can be larger than
+% 360 degrees if there are many turns of the particle. The postprocessing
+% within function angleDegToPos assummes anti-clockwise rotation.
 
 % Fit orientation angle versus time to a LINE to get angular velocity of
 % particle rotation:

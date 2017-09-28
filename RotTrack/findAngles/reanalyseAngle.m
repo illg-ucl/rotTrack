@@ -24,9 +24,12 @@ function reanalyseAngle(excelFileName,frameRateReal,thresh_slope,minSectionPoint
 % ========================================
 %
 % Reanalyse a set of excel files containing track data for frame number, time, angle,
-% etc, to obtain angular velocity and frequency of rotation, postprocessing
-% the angle and fitting the appropriate linear regions. Use input frame
-% rate. All valid for clockwise rotation.
+% etc, to obtain angular velocity and frequency of rotation. The raw angle
+% is postprocessed assuming anti-clockwise rotation. Then the linear
+% sections with a large enough slope (above input thresh_slope) in the 
+% the angle vs time plot are automatically detected and fitted to a line. 
+% The input frame rate is used to convert frame number into time (s).
+% IMPORTANT: calculations assume anti-clockwise rotation.
 %
 % INPUTS:
 % - excelFileName: string with the name of the Excel file containing the original extracted
@@ -38,14 +41,15 @@ function reanalyseAngle(excelFileName,frameRateReal,thresh_slope,minSectionPoint
 % positive slope larger than this threshold is fitted to obtain angular
 % velocity and rotation frequency. 360deg/s corresponds to 1Hz. 
 % E.g., 250-300deg/s is a good threshold for 10Hz field. For 1Hz field, ~130deg/s is better.
-% - minSectionPoints: minimum number of points in a linear angle vs time
-% section for it to be fitted to a line to obtain the slope (angular
-% velocity).
+% - minSectionPoints: minimum number of points in a single linear section in the angle vs time
+% plot for it to be fitted to a line to obtain the slope (angular velocity).
 %
 % OUTPUTS:
-% A new png graph file is generated with name "bis" appended to original
+% A new folder called 'analysis_BIS' is generated, containing the
+% following: 
+% - A new png graph file is generated with name "bis" appended to original
 % name, containing the new angle vs time plot, fits and fit results for individual linear sections. 
-% A new Excel file "bis" with new sheets is created with the
+% - A new Excel file "bis" with new sheets is created with the
 % revised analysis for the postprocessed angle vs time and for the data and
 % fit results for the relevant linear sections.
 

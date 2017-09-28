@@ -24,23 +24,10 @@ function angle_pos = angleDegToPos(angle_list)
 % ========================================
 %
 % Take an input list of angles (angle_list) between -90 and 90
-% degreees and convert it first into a list of angles between 0 and 180
-% degrees and then into a list of positive cyclic angles that can have
-% values larger than 360 degrees.
+% degreees and convert it first into a list of positive cyclic angles that can have
+% values larger than 360 degrees. 
+% IMPORTANT: This function assummes anti-clockwise rotation!!
 % The output (angle_pos) is a list with positive angles in degrees. 
-
-
-% %% Convert list of angles between -90 and 90 degrees into list of angles between 0 and 180 degrees:
-% % Initialise variable:
-% angle_pos = zeros(length(angle_list),1); % column vector
-% 
-% for i = 1:length(angle_list)
-%    if angle_list(i)<0
-%        angle_pos(i) = 180 + angle_list(i);
-%    else
-%        angle_pos(i) = angle_list(i);
-%    end
-% end
 
 
 %% Convert into cyclic positive angles that can take values larger than 360 degrees:
@@ -52,7 +39,7 @@ for i = 1:length(angle_jump)
     angle_jump(i) = angle_list(i+1) - angle_list(i);
 end
 
-% Jumps in angle would be -180 degreees for ideal anticlockwise rotation. 
+% Jumps in angle would be -180 degreees for ideal anti-clockwise rotation. 
 % In case there is noise, we reduce the size of the jumps to about -90 degrees:
 pos_jumps = 1+find(angle_jump < -90); % position of jumps larger than -90 degrees in angle_pos vector.
 
