@@ -1,4 +1,4 @@
-function scriptToAnalyseManyVideos
+function scriptToAnalyseManyVideosBis
 %
 % ========================================
 % RotTrack.
@@ -22,6 +22,11 @@ function scriptToAnalyseManyVideos
 % year         = 2017,
 % url          = {https://github.com/illg-ucl/rotTrack}}
 % ========================================
+
+
+% Move into correct data directory:
+cd('C:\Users\isabel\ISABEL\UCL_Isabel\Projects\Collaborations\SoniaContera\Andrea_rotatingMagneticParticles\data_30fps_microparticles\Sigma')
+
 
 %% PARAMETERS:
 

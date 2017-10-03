@@ -107,6 +107,8 @@ excludedRegions.list_xstart = [1 1 1 130];
 excludedRegions.list_xend = [820 112 100 215];
 excludedRegions.list_ystart = [581 492 1 1];
 excludedRegions.list_yend = [614 580 175 54];
+% Enter [] (so that isempty(excludedRegions) = 1) if you
+% don't want to exclude any regions.
 % Then run:
 t1 = FindTrajectsParticles(image_label,1,78,excludedRegions);
 % Save all result structures in a .mat file:

@@ -86,7 +86,7 @@ angleDegrees = NUMERIC(:,ID.angleDegrees); % raw angle data between -90 and 90 d
 % values larger than 360 degrees. Obtained with function angleDegToPos.m, when this was causing some errors.
 angleDegreesPos2 = angleDegToPos(angleDegrees); % use corrected postprocessing function.
 
-disp('Excel file read successfully.');
+% disp('Excel file read successfully.');
 
 
 %% Automatically find segments to fit to a line
