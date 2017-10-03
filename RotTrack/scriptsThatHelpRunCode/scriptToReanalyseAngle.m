@@ -61,7 +61,7 @@ end
 % List of video file names:
 listVideoNames = {listVideoNames0.name}; % cell array of strings with video file names.
 % Generate list of folder names:
-for k=1:length(listVideoNames)
+for k = 1:length(listVideoNames)
     fullName = listVideoNames{k};
     pos = strfind(fullName,videoFile_extension); % position of the start of the string videoFile_extension in the file name.
     folderName{k} = strcat(data_set_label,'_',fullName(1:(pos-1)),'_'); 
@@ -70,9 +70,9 @@ end
 
 %% Loop through analysis folders:
 
-for i = 1:length(folderName)
+for k = 1:length(folderName)
     
-    folderName % print to command window
+    folderName{k} % print to command window
     cd(folderName{k}) % move into folder
     
     % Choose appropriate slope threshold for reanalysis:
