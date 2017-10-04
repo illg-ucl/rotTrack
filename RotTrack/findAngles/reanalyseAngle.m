@@ -1,4 +1,4 @@
-function reanalyseAngle(excelFileName,frameRateReal,thresh_slope,minSectionPoints)
+function reanalyseAngle(excelFileName,frameRateReal,thresh_slope_min,thresh_slope_max,minSectionPoints)
 %
 % ========================================
 % RotTrack.
@@ -37,10 +37,14 @@ function reanalyseAngle(excelFileName,frameRateReal,thresh_slope,minSectionPoint
 % - frameRateReal: Actual frame rate for the data in frames per second. In
 % case analysis needs to be corrected. For Sonia+Andrea's data, frame rate
 % is 15 frames per second.
-% - thresh_slope: threshold slope in degrees/s. Only linear data with a
-% positive slope larger than this threshold is fitted to obtain angular
+% - thresh_slope_min: minimum threshold slope in degrees/s. Only linear data with a
+% positive slope larger than this minimum threshold is fitted to obtain angular
+% velocity and rotation frequency. 360deg/s corresponds to 1Hz. 
+% - thresh_slope_max: maximum threshold slope in degrees/s. Only linear data with a
+% positive slope smaller than this maximum threshold is fitted to obtain angular
 % velocity and rotation frequency. 360deg/s corresponds to 1Hz. 
 % E.g., 250-300deg/s is a good threshold for 10Hz field. For 1Hz field, ~130deg/s is better.
+% You can use AID PLOTS below to determine the correct thresholds.
 % - minSectionPoints: minimum number of points in a single linear section in the angle vs time
 % plot for it to be fitted to a line to obtain the slope (angular velocity).
 %
@@ -104,6 +108,8 @@ end
 diff1_smooth = tsmovavg(diff1, 's', 3, 1); % Note that first two points are lost.
 
 % Aid plots:
+% USE THIS PLOTS TO see what are the right values for thresh_slope_min and
+% thresh_slope_max:
 plot(timeabsReal,angleDegreesPos2,'.-r')
 hold on;
 plot(timeabsReal(1:length(timeabsReal)-2),diff1,'.-k')
@@ -112,7 +118,7 @@ plot(timeabsReal(1:length(timeabsReal)-2),diff1_smooth,'.-g')
 close;
 
 % Positions with a slope larger than the input threshold slope:
-pos_largeSlope = find(diff1_smooth > thresh_slope);
+pos_largeSlope = find(diff1_smooth>thresh_slope_min & diff1_smooth<thresh_slope_max);
 
 if length(pos_largeSlope) > minSectionPoints % Error control. Since we will later only accept sections with at least minSectionPoints points, insert limit here to avoid computations if only few short sections.
     % Find differences:
@@ -274,7 +280,7 @@ if length(pos_largeSlope) > minSectionPoints % Error control. Since we will late
     xlswrite(output_filename,dataForSheetFinalFreq,'finalFreqHz');
     
     % Save re-analysis parameters:
-    dataReanalysisParams = [{'frameRateReal(fps)'; 'thresh_slope(deg/s)'; 'minSectionPoints(frames)'}, num2cell(cell2mat({frameRateReal; thresh_slope; minSectionPoints}))];
+    dataReanalysisParams = [{'frameRateReal(fps)'; 'thresh_slope_min(deg/s)'; 'thresh_slope_max(deg/s)'; 'minSectionPoints(frames)'}, num2cell(cell2mat({frameRateReal; thresh_slope_min; thresh_slope_max; minSectionPoints}))];
     xlswrite(output_filename,dataReanalysisParams,'Params Reanalysis');
     cd('..') % go back to previous folder.
     

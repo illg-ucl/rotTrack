@@ -39,12 +39,17 @@ function scriptToReanalyseAngle
 frameRate = 30; % frame rate in frames per second.
 minSectionPoints = 5; % minimum number of points in a linear section (in angle vs time plot)
 % for it to be fitted to a line to obtain the slope (angular velocity).
-thresh_slope_1Hz = 130; % minimum slope in a linear section for it to be fitted to a line. 
-thresh_slope_5Hz = 500;
+% Minimum slope in a linear section for it to be fitted to a line:
+thresh_slope_min_1Hz = 130; 
+thresh_slope_min_5Hz = 500;
 % Value in degrees/s. 360deg/s corresponds to a frequency of 1Hz.
 % E.g., 250-300 deg/s is a good threshold for 10Hz rotating field. 
-% For 5Hz field, ~200 deg/s is good.
+% For 5Hz field, ~500-650 deg/s is good.
 % For 1Hz field, ~130 deg/s is good.
+% Maximum slope in a linear section for it to be fitted to a line, set it
+% to just above the rotation frequency of the field:
+thresh_slope_max_1Hz = 360*1*1.2; % for 1 Hz field
+thresh_slope_max_5Hz = 360*5*1.2; % for 5 Hz field.
 
 % Name used for analysis folders (in scriptToAnalyseManyVideos.m):
 data_set_label = 'analysis';
@@ -61,10 +66,10 @@ end
 % List of video file names:
 listVideoNames = {listVideoNames0.name}; % cell array of strings with video file names.
 % Generate list of folder names:
-for k = 1:length(listVideoNames)
-    fullName = listVideoNames{k};
+for j = 1:length(listVideoNames)
+    fullName = listVideoNames{j};
     pos = strfind(fullName,videoFile_extension); % position of the start of the string videoFile_extension in the file name.
-    folderName{k} = strcat(data_set_label,'_',fullName(1:(pos-1)),'_'); 
+    folderName{j} = strcat(data_set_label,'_',fullName(1:(pos-1)),'_'); 
 end
 
 
@@ -77,17 +82,21 @@ for k = 1:length(folderName)
     
     % Choose appropriate slope threshold for reanalysis:
     if ~isempty(strfind(folderName{k},'1Hz'))
-        thresh_slope = thresh_slope_1Hz;
+        thresh_slope_min = thresh_slope_min_1Hz;
+        thresh_slope_max = thresh_slope_max_1Hz;
     elseif ~isempty(strfind(folderName{k},'5Hz'))
-        thresh_slope = thresh_slope_5Hz;
+        thresh_slope_min = thresh_slope_min_5Hz;
+        thresh_slope_max = thresh_slope_max_5Hz;
     end
     
     % Find excel files in current directory:
     list_excelFiles = dir('*.xls');
     
     for i = 1:length(list_excelFiles)
-        reanalyseAngle(list_excelFiles(i).name,frameRate,thresh_slope,minSectionPoints);
+        reanalyseAngle(list_excelFiles(i).name,frameRate,thresh_slope_min,thresh_slope_max,minSectionPoints);
     end
+    
+    cd('..')
     
 end
     
