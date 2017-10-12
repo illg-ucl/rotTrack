@@ -112,10 +112,10 @@ diff1_smooth = tsmovavg(diff1, 's', 3, 1); % Note that first two points are lost
 % thresh_slope_max:
 plot(timeabsReal,angleDegreesPos2,'.-r')
 hold on;
-plot(timeabsReal(1:length(timeabsReal)-2),diff1,'.-k')
+% plot(timeabsReal(1:length(timeabsReal)-2),diff1,'.-k')
 plot(timeabsReal(1:length(timeabsReal)-2),diff1_smooth,'.-g')
 % min(diff1_smooth)
-close;
+close; 
 
 % Positions with a slope larger than the input threshold slope:
 pos_largeSlope = find(diff1_smooth>thresh_slope_min & diff1_smooth<thresh_slope_max);

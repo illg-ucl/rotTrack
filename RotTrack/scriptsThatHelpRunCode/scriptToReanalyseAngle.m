@@ -40,7 +40,7 @@ frameRate = 30; % frame rate in frames per second.
 minSectionPoints = 5; % minimum number of points in a linear section (in angle vs time plot)
 % for it to be fitted to a line to obtain the slope (angular velocity).
 % Minimum slope in a linear section for it to be fitted to a line:
-thresh_slope_min_1Hz = 130; 
+thresh_slope_min_1Hz = 100; 
 thresh_slope_min_5Hz = 500;
 % Value in degrees/s. 360deg/s corresponds to a frequency of 1Hz.
 % E.g., 250-300 deg/s is a good threshold for 10Hz rotating field. 
