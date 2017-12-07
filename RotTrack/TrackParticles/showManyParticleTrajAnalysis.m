@@ -1,4 +1,4 @@
-function processedManyTrajs = showManyParticleTrajAnalysis(image_label,data_set_label,n_traj_start,n_traj_end,start_frame,tsamp,pixelsize_nm,showVideo,saveAvi,minPointsTraj) 
+framesPerSecondfunction processedManyTrajs = showManyParticleTrajAnalysis(image_label,data_set_label,n_traj_start,n_traj_end,start_frame,tsamp,pixelsize_nm,showVideo,saveAvi,minPointsTraj) 
 %
 % ========================================
 % RotTrack.
@@ -191,7 +191,7 @@ framesPerSecond = 5;
 % to edge of image.
 extraSubarraySizeFactor = 1.2;
 
-initial_folder_path = cd; 
+% initial_folder_path = cd; 
 
 %% Get path for trajectory data (excel file):
 
@@ -467,9 +467,7 @@ for n = n_traj_start:n_traj_end
             d = min([d_top d_bottom d_left d_right]);
             
             for k = 1:length(frames_list) % loop through frames in track
-                if k == 160
-                    k
-                end
+
                 frame0 = image_data(frames_list(k)).frame_data; % extract frame data.
                 frame0 = double(frame0);
                 
