@@ -117,7 +117,7 @@ plot(timeabsReal(1:length(timeabsReal)-2),diff1_smooth,'.-g')
 % min(diff1_smooth)
 close; 
 
-% Positions with a slope larger than the input threshold slope:
+% Positions with a slope larger than the input threshold_min slope and smaller than the input threshold_max slope:
 pos_largeSlope = find(diff1_smooth>thresh_slope_min & diff1_smooth<thresh_slope_max);
 
 if length(pos_largeSlope) > minSectionPoints % Error control. Since we will later only accept sections with at least minSectionPoints points, insert limit here to avoid computations if only few short sections.

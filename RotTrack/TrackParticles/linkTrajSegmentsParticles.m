@@ -126,7 +126,7 @@ if max([traj_results.TrajNumber])> length(color_list)
 end
 % ------------
 
-%% Read in the .sif image data:
+%% Read in the image data:
 %
 % Read image-sequence file: 
 [numFrames frame_Ysize frame_Xsize image_data image_path] = extract_image_sequence_data(image_label);
