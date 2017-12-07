@@ -246,14 +246,29 @@ disp(['frame number: ',num2str(start_frame)]) % print frame number to Command Wi
 
 disp(['no. of initial particle candidate positions: ',num2str(length(candidate_X_000))])
 
+% Exclude certain regions from image (see INPUT excludedRegions):
+if isempty(excludedRegions) == 1 % do not exclude any regions of image
+    candidate_X_00 = candidate_X_000;
+    candidate_Y_00 = candidate_Y_000;
+else
+    list_xstart = excludedRegions.list_xstart;
+    list_xend = excludedRegions.list_xend;
+    list_ystart = excludedRegions.list_ystart;
+    list_yend = excludedRegions.list_yend;
+    [candidate_X_00,candidate_Y_00] = excludeRegions(candidate_X_000,candidate_Y_000,list_xstart,list_xend,list_ystart,list_yend);
+end
+
+disp(['no. of total candidate particle positions after excluding certain regions (as input)): ',num2str(length(candidate_X_00))])
+
+
 % Error control:
 % Limit the max number of candidate particles (if eg. 260000 candidate particles are
 % found, we will get an error in function pdist: "Distance matrix has more
 % elements than the maximum allowed size in MATLAB").
 % Select only the first max_num_candidates then.
-if length(candidate_X_000) > max_num_candidates
-    candidate_X_000 = candidate_X_000(1:max_num_candidates);
-    candidate_Y_000 = candidate_Y_000(1:max_num_candidates);
+if length(candidate_X_00) > max_num_candidates
+    candidate_X_00 = candidate_X_00(1:max_num_candidates);
+    candidate_Y_00 = candidate_Y_00(1:max_num_candidates);
     disp(['NOTE!! no. of candidate particle positions has been limited to ',num2str(max_num_candidates)])
 end
 
@@ -264,23 +279,9 @@ end
 % figure;
 
 % Eliminate candidate positions closer to each other than d_coincid_cand (3 pixels):
-[candidate_X_00,candidate_Y_00,pos_to_keep1] = eliminateCoincidentPositions(candidate_X_000,candidate_Y_000,d_coincid_cand);
+[candidate_X_0,candidate_Y_0,pos_to_keep1] = eliminateCoincidentPositions(candidate_X_00,candidate_Y_00,d_coincid_cand);
 
-disp(['no. of total candidate particle positions after eliminating coincidences: ',num2str(length(candidate_X_00))])
-
-% Exclude certain regions from image (see INPUT excludedRegions):
-if isempty(excludedRegions) == 1 % do not exclude any regions of image
-    candidate_X_0 = candidate_X_00;
-    candidate_Y_0 = candidate_Y_00;
-else
-    list_xstart = excludedRegions.list_xstart;
-    list_xend = excludedRegions.list_xend;
-    list_ystart = excludedRegions.list_ystart;
-    list_yend = excludedRegions.list_yend;
-    [candidate_X_0,candidate_Y_0] = excludeRegions(candidate_X_00,candidate_Y_00,list_xstart,list_xend,list_ystart,list_yend);
-end
-
-disp(['no. of total candidate particle positions after excluding certain regions (as input)): ',num2str(length(candidate_X_0))])
+disp(['no. of total candidate particle positions after eliminating coincidences: ',num2str(length(candidate_X_0))])
 
 % No need to do background subtraction.
 % % Subtract background from entire frame (method 1 is faster) considering particle candidate positions:
@@ -388,38 +389,38 @@ for k = (start_frame+1):end_frame
     % the subindex "_000" in candidate_X_000 indicates newly found particle
     % candidates for the current frame. 
       
+    disp(['no. of initial particle candidate positions: ',num2str(length(candidate_X_000))])
+    
+    % Exclude certain regions from image (see INPUT excludedRegions):
+    if isempty(excludedRegions) == 1 % do not exclude any regions of image
+        candidate_X_00 = candidate_X_000;
+        candidate_Y_00 = candidate_Y_000;
+    else
+        [candidate_X_00,candidate_Y_00] = excludeRegions(candidate_X_000,candidate_Y_000,list_xstart,list_xend,list_ystart,list_yend);
+    end    
+    disp(['no. of total candidate particle positions after excluding certain regions (as input)): ',num2str(length(candidate_X_00))])
+      
     % Error control:
     % Limit the max number of candidate particle positions (if eg. 260000 candidates are
     % found, we will get an error in function pdist: "Distance matrix has more
     % elements than the maximum allowed size in MATLAB").
     % Select only the first max_num_candidates then.
-    if length(candidate_X_000) > max_num_candidates
-        candidate_X_000 = candidate_X_000(1:max_num_candidates);
-        candidate_Y_000 = candidate_Y_000(1:max_num_candidates);
+    if length(candidate_X_00) > max_num_candidates
+        candidate_X_00 = candidate_X_00(1:max_num_candidates);
+        candidate_Y_00 = candidate_Y_00(1:max_num_candidates);
         disp(['NOTE!! no. of candidate particle positions has been limited to ',num2str(max_num_candidates)])
     end
+           
+    % Eliminate candidate positions closer to each other than d_coincid_cand (3 pixels):
+    [candidate_X_0,candidate_Y_0,pos_to_keep1] = eliminateCoincidentPositions(candidate_X_00,candidate_Y_00,d_coincid_cand);
     
+    disp(['no. of total candidate particle positions after eliminating coincidences: ',num2str(length(candidate_X_0))])
+   
     % % Check graphically:
     % imshow(frame,[]);
     % hold on;
     % plot(candidate_X_0,candidate_Y_0,'*');
     % figure;
-    
-    disp(['no. of initial particle candidate positions: ',num2str(length(candidate_X_000))])
-    
-    % Eliminate candidate positions closer to each other than d_coincid_cand (3 pixels):
-    [candidate_X_00,candidate_Y_00,pos_to_keep1] = eliminateCoincidentPositions(candidate_X_000,candidate_Y_000,d_coincid_cand);
-    
-    disp(['no. of total candidate particle positions after eliminating coincidences: ',num2str(length(candidate_X_00))])
-          
-    % Exclude certain regions from image (see INPUT excludedRegions):
-    if isempty(excludedRegions) == 1 % do not exclude any regions of image
-        candidate_X_0 = candidate_X_00;
-        candidate_Y_0 = candidate_Y_00;
-    else
-        [candidate_X_0,candidate_Y_0] = excludeRegions(candidate_X_00,candidate_Y_00,list_xstart,list_xend,list_ystart,list_yend);
-    end    
-    disp(['no. of total candidate particle positions after excluding certain regions (as input)): ',num2str(length(candidate_X_0))])
     
     % No need to do background subtraction.
     % % Subtract background from entire frame (method 1 is faster) considering particle candidate positions:
