@@ -348,6 +348,7 @@ hold off;
 %% Msd (mean square displacement) versus delta-time:
 
 % Original msd data:
+% insert break point here for figures for paper
 xdata_msd_0 = double(analysedAllTraj(n_traj).deltaTime); % delta-time is in seconds.
 ydata_msd_0 = double(analysedAllTraj(n_traj).msd); % fits fail later if data is not of class double. msd is in pixels^2 here.
 % Error bars for msd versus Delta t plot:

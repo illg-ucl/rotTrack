@@ -1,4 +1,4 @@
-framesPerSecondfunction processedManyTrajs = showManyParticleTrajAnalysis(image_label,data_set_label,n_traj_start,n_traj_end,start_frame,tsamp,pixelsize_nm,showVideo,saveAvi,minPointsTraj) 
+function processedManyTrajs = showManyParticleTrajAnalysis(image_label,data_set_label,n_traj_start,n_traj_end,start_frame,tsamp,pixelsize_nm,showVideo,saveAvi,minPointsTraj) 
 %
 % ========================================
 % RotTrack.
@@ -394,6 +394,8 @@ n_good_tracking = 1; % initialise index for trajs with good tracking which are s
 
 for n = n_traj_start:n_traj_end
     
+    % disp(['Trajectory number = ',num2str(n)])
+    
     % Check if track number n is one of the "good" ones:
     B = ismember(good_track_numbers,n); % result is a vector with zeros at all positions except at the position of n in vector good_track_numbers, if it is a "good" one.
     % sum(B) is equal to 0 if "n" is not a "good" track, and equal to 1 if
@@ -467,7 +469,9 @@ for n = n_traj_start:n_traj_end
             d = min([d_top d_bottom d_left d_right]);
             
             for k = 1:length(frames_list) % loop through frames in track
-
+                
+                % disp(['Frame number = ',num2str(k)])
+                
                 frame0 = image_data(frames_list(k)).frame_data; % extract frame data.
                 frame0 = double(frame0);
                 
@@ -502,6 +506,10 @@ for n = n_traj_start:n_traj_end
                 
                 pause(0.1); % this pause is needed to give time for the plot to appear (0.1 to 0.3 default)
                 hold off;
+                
+%                 if n==5 % for a given trajectory number. Use to stop and save frame-by-frame images of tracking.
+%                     disp('hold here') % insert break point here
+%                 end
                 
                 % ---
                 if saveAvi == 1

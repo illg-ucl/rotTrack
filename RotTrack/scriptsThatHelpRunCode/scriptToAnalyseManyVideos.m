@@ -23,6 +23,9 @@ function scriptToAnalyseManyVideos
 % url          = {https://github.com/illg-ucl/rotTrack}}
 % ========================================
 
+% Used to analyse 30fps data from rotating magnetic particles from Sonia
+% Contera and Andrea Bonilla.
+
 %% PARAMETERS:
 
 data_set_label = 'analysis';
