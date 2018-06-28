@@ -24,7 +24,7 @@ function [numFrames frame_Ysize frame_Xsize image_data image_path] = extract_ima
 % ========================================
 %
 %
-% Read image sequence (.sif, .dv, .tif, .m4v or .mat data) and return image data in a useful
+% Read image sequence (.sif, .dv, .tif, .m4v, .mat or .avi data) and return image data in a useful
 % form.
 %
 % Inputs: 
@@ -52,6 +52,7 @@ sifImagePath0 = dir(strcat(image_label,'.sif')); % Image sequence data path if t
 tifImagePath0 = dir(strcat(image_label,'.tif')); % Image sequence data path if the image is a .tif file.
 m4vImagePath0 = dir(strcat(image_label,'.m4v')); % Image sequence data path if the image is a .m4v file.
 matImagePath0 = dir(strcat(image_label,'.mat')); % Image sequence data path if the image is a .mat file.
+aviImagePath0 = dir(strcat(image_label,'.avi')); % Image sequence data path if the image is a .avi file.
 
 % Error control:
 % Sometimes we use a .mat file containing the good track numbers with a name which contains also
@@ -63,8 +64,8 @@ if ~isempty(matImagePath0) && ~isempty(strfind(matImagePath0.name,'good_tracks_'
     matImagePath0 = [];
 end
 
-% Error control if neither a .sif, .tif, .mat or .dv file can be found with that label:
-if isempty(dvImagePath0) && isempty(sifImagePath0) && isempty(tifImagePath0) && isempty(m4vImagePath0) && isempty(matImagePath0) % If there is no .sif, .tif or .dv image sequence file for such image_label, show error and exit function:
+% Error control if neither a .dv, .sif, .tif, .m4v, .mat or .avi file can be found with that label:
+if isempty(dvImagePath0) && isempty(sifImagePath0) && isempty(tifImagePath0) && isempty(m4vImagePath0) && isempty(matImagePath0) && isempty(aviImagePath0)% If there is no .sif, .tif or .dv image sequence file for such image_label, show error and exit function:
     error('Check you are in the correct directory and run again. No .sif, .tif, .dv or .mat file found for that image_label.');
 end
 
@@ -263,6 +264,43 @@ if isempty(matImagePath0)==0
     
 end
 
+
+
+%% For .avi files 
+
+if isempty(aviImagePath0)==0
+    
+    image_path = aviImagePath0.name;    
+    avi_info = VideoReader(image_path);
+    % Add other useful info to final output:
+    frame_Ysize = avi_info.Height;
+    frame_Xsize = avi_info.Width;
+%     % Make the image be a square image:
+%     frame_Ysize = min(frame_Ysize,frame_Xsize);
+%     frame_Xsize = min(frame_Ysize,frame_Xsize);
+
+    % If by any chance the frame size is an odd number:
+    if mod(frame_Ysize,2)~=0 % modulus after division
+        frame_Ysize = frame_Ysize - 1;
+        frame_Xsize = frame_Xsize - 1;
+    end
+    
+    % To produce image data in final output form:
+    % Read in frames:
+    k = 1;
+    while hasFrame(avi_info)
+        frame = readFrame(avi_info);
+        frame = single(frame);  % to class single.
+        % frame = double(frame);  % to class double.
+        % Convert RGB values to grayscale values by forming a weighted sum
+        % of the R, G, and B components, see rgb2gray:
+        image_data(k).frame_data = 0.2989 * frame(:,:,1) + 0.5870 * frame(:,:,2) + 0.1140 * frame(:,:,3);
+        k = k+1;
+    end
+    
+    numFrames = k-1; % number of frames in sequence.    
+    
+end
 
 
 
