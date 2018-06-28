@@ -55,7 +55,7 @@ function [xx,yy] = findCandidateParticlePositions(frame,method)
 %% PARAMETERS:
 disk_radius1 = 4; % disk radius in pixels, for smoothing transformations below. Default 4.
 disk_radius2 = 6; % disk radius in pixels for eliminating small things that are not particles. Default 6.
-threshold_factor = 0.35; % For thresholding, aiming to detect the black centre of particles. Default 0.64.
+threshold_factor = 0.6; % For thresholding, aiming to detect the black centre of particles. Default 0.64.
 % Adjust according to image contrast.
 % A factor ~0.6 seems to be best to allow detection of dimmer particles and also separation
 % of nearby particles, though it can give rise to false candidates (between close particles).

@@ -107,10 +107,18 @@ excludedRegions.list_xstart = [1 1 1 130];
 excludedRegions.list_xend = [820 112 100 215];
 excludedRegions.list_ystart = [581 492 1 1];
 excludedRegions.list_yend = [614 580 175 54];
+% ---------------------------
+% For HOPG magnetophoresis data analysis:
+% Use threshold_factor = 0.6; in findCandidateParticlePositions.m. 
+excludedRegions.list_xstart = [1 1];
+excludedRegions.list_xend = [1280 1280];
+excludedRegions.list_ystart = [1 600];
+excludedRegions.list_yend = [399 1024];
+% ---------------------------
 % Enter [] (so that isempty(excludedRegions) = 1) if you
 % don't want to exclude any regions.
 % Then run:
-t1 = FindTrajectsParticles(image_label,1,78,excludedRegions);
+t1 = FindTrajectsParticles(image_label,1,'end',excludedRegions);
 % Save all result structures in a .mat file:
 save 'resultStructures' 't*' 
 
@@ -126,7 +134,7 @@ save 'resultStructures' 't*'
 % TrajNumber, the Trajectory Number.
 % Note: make sure that the start_frame and end_frame values are kept the
 % same throughout all functions ran in steps 6a and 6b.
-linkTrajSegmentsParticles(image_label,1,78,t1,'test');
+linkTrajSegmentsParticles(image_label,1,'end',t1,'test');
 
 % - 7. Plot and save a .png image of the Trajectory Numbers for the found
 % particless overlaid on top of first frame of the video.
