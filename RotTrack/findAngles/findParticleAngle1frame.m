@@ -126,7 +126,8 @@ if d < d_min
     particle_result.minorAxisLength = [];
     particle_result.ClipFlag = clipping_flag; % 1 if candidate was closer to edge of image than inner_radius.
     particle_result.TooCloseToEdge = tooCloseToEdge; % 1 if particle candidate was closer to edge of image than d_min.
-   
+    particle_result.Area = [];
+    
 else
          
     %% Create image subarray (I) around particle estimated centre:
@@ -225,7 +226,7 @@ else
     %% Obtain particle orientation:
     
     conn_regions = bwconncomp(particle3,8); % find connected components in final binary image
-    conn_regions_props = regionprops(conn_regions,'Orientation', 'MajorAxisLength', 'MinorAxisLength', 'Centroid');
+    conn_regions_props = regionprops(conn_regions,'Orientation', 'MajorAxisLength', 'MinorAxisLength', 'Centroid','Area');
     % 'Orientation' = angle (degrees) that the major axis of an ellipsoid
     % matching the connected region makes with respect to the horizontal axis.
     % Note that this angle is in degrees ranging from -90 to 90 degrees
@@ -279,6 +280,7 @@ else
         particle_result.minorAxisLength = conn_regions_props.MinorAxisLength;
         particle_result.ClipFlag = clipping_flag; % 1 if candidate was closer to edge of image than inner_radius.
         particle_result.TooCloseToEdge = tooCloseToEdge; % 1 if bead candidate was closer to edge of image than d_min.
+        particle_result.Area = conn_regions_props.Area; % total number of pixels in connected region.
         % -----------------------------------------------------------------------
 %         % % Auxiliary stuff below:
 %         % % Plot results:
@@ -315,6 +317,7 @@ else
         particle_result.minorAxisLength = [];
         particle_result.ClipFlag = clipping_flag; % 1 if candidate was closer to edge of image than inner_radius.
         particle_result.TooCloseToEdge = tooCloseToEdge; % 1 if bead candidate was closer to edge of image than d_min.
+        particle_result.Area = [];
 %         % % Plot results:
 %         figure;
 %         subplot(1,2,1)

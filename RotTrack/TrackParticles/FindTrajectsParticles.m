@@ -244,6 +244,11 @@ disp(['frame number: ',num2str(start_frame)]) % print frame number to Command Wi
 % They contain integer numbers: coordinates or pixel numbers which give
 % position on image plane.
 
+% % Check graphically:
+% imshow(frame,[]);
+% hold on;
+% plot(candidate_X_000,candidate_Y_000,'*');
+
 disp(['no. of initial particle candidate positions: ',num2str(length(candidate_X_000))])
 
 % Exclude certain regions from image (see INPUT excludedRegions):
@@ -342,6 +347,7 @@ if (n-1) == 0
     particle_final(start_frame,n).minorAxisLength = [];
     particle_final(start_frame,n).ClipFlag = [];
     particle_final(start_frame,n).TooCloseToEdge = []; 
+    particle_final(start_frame,n).Area = [];
     particle_final(start_frame,n).FrameNumber = [];
     particle_final(start_frame,n).ParticleNumber = []; 
     particle_final(start_frame,n).TrajNumber = [];
