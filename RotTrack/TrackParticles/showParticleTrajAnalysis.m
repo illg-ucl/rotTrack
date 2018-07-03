@@ -773,6 +773,7 @@ processedTraj{n_trackData}.xvalues = analysedAllTraj(n_traj).xvalues; % original
 processedTraj{n_trackData}.yvalues = analysedAllTraj(n_traj).yvalues; % original position on image.
 processedTraj{n_trackData}.xvalues_offset = analysedAllTraj(n_traj).xvalues_offset; % position with respect to 1st point in track.
 processedTraj{n_trackData}.yvalues_offset = analysedAllTraj(n_traj).yvalues_offset; % position with respect to 1st point in track.
+processedTraj{n_trackData}.area = analysedAllTraj(n_traj).area; % particle area (number of pixels).
 
 % Others:
 

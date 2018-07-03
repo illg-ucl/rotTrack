@@ -259,18 +259,19 @@ for i=1:numel(colheads)
     ID.(colheads{i}) = find(strcmp(TXT,colheads{i})); 
 end
 % eg. ID = 
-%     estimateXcentre: 98
-%     estimateYcentre: 391
-%                Xcom: 98.4190
-%                Ycom: 391.4190
-%        AngleDegrees: 63.1974
-%     majorAxisLength: 13.0164
-%     minorAxisLength: 10.4070
-%            ClipFlag: 0
-%      TooCloseToEdge: 0
-%         FrameNumber: 1
-%      ParticleNumber: 1
-%          TrajNumber: 1
+%     estimateXcentre: 1
+%     estimateYcentre: 2
+%                Xcom: 3
+%                Ycom: 4
+%        AngleDegrees: 5
+%     majorAxisLength: 6
+%     minorAxisLength: 7
+%            ClipFlag: 8
+%                Area: 9
+%      TooCloseToEdge: 10
+%         FrameNumber: 11
+%      ParticleNumber: 12
+%          TrajNumber: 13
 
 % The trajectory number column:
 traj = NUMERIC(:,ID.TrajNumber); % NUMERIC is the numeric data read from the excel file (without the row of column titles).
@@ -294,7 +295,7 @@ tracks(1:numtracks) = struct('trajNumber',[],'angleDegrees',[],...
     'xvalues_offset',[],'yvalues_offset',[],...
     'msd_unavg',[],'frame',[],'timeabs',[],'timerel',[],'numel',[],...
     'minNumPointsInTraj',[],'deltaTime',[],'msd',[],'errorMsd',[],...
-    'errorMsdRelPercent',[],'disp',[]);
+    'errorMsdRelPercent',[],'disp',[],'area',[]);
 
 del = []; % initialise for later.
 
@@ -325,6 +326,8 @@ for i=1:numtracks
         tracks(i).xvalues_offset = tracks(i).xvalues - (tracks(i).xvalues(1)); % xvalues relative to the first point in the trajectory.
         tracks(i).yvalues_offset = tracks(i).yvalues - (tracks(i).yvalues(1)); % % yvalues relative to the first point in the trajectory.
         tracks(i).msd_unavg = tracks(i).xvalues_offset.^2+tracks(i).yvalues_offset.^2; % absolute squared displacement from the origin (0,0): x^2 + y^2.
+        % Area of particle (in number of pixels):
+        tracks(i).area = data{i}(1:end,ID.Area);
         % Set time origin to first point in track:
         tracks(i).timerel = tracks(i).timeabs-tracks(i).timeabs(1); % Time relative to first point in track. Set the first frame analysed as time zero reference (not used for now).
         % Calculate and add to structure the 2D mean square displacement (msd):
@@ -446,10 +449,14 @@ for n = n_traj_start:n_traj_end
             % position of particle. Corrected later if particle too close
             % to edge of image. An extra factor extraSubarraySizeFactor is
             % multiplied to allow for particle movement (see PARAMETERS):
-            d_top = subarray_halfwidth*extraSubarraySizeFactor;
-            d_bottom = subarray_halfwidth*extraSubarraySizeFactor;
-            d_left = subarray_halfwidth*extraSubarraySizeFactor;
-            d_right = subarray_halfwidth*extraSubarraySizeFactor;
+%             d_top = subarray_halfwidth*extraSubarraySizeFactor;
+%             d_bottom = subarray_halfwidth*extraSubarraySizeFactor;
+%             d_left = subarray_halfwidth*extraSubarraySizeFactor;
+%             d_right = subarray_halfwidth*extraSubarraySizeFactor;
+            d_top = 30;
+            d_bottom = 30;
+            d_left = 320;
+            d_right = 320;
             % If the particle is at edge of image, take a smaller subarray around
             % it but as large as possible until the edge is reached,
             % so reasign the d values:
@@ -478,16 +485,19 @@ for n = n_traj_start:n_traj_end
                 %% Create image subarray (frame) around particle average centre of mass:
                 % Create squared image subarray of size
                 % (2*d+1)x(2*d+1) centered on (mean_xvalue,mean_yvalue):
-                frame = frame0(round(mean_yvalue)-d:round(mean_yvalue)+d,round(mean_xvalue)-d:round(mean_xvalue)+d);
-                
+                % frame = frame0(round(mean_yvalue)-d:round(mean_yvalue)+d,round(mean_xvalue)-d:round(mean_xvalue)+d);
+                frame = frame0(round(mean_yvalue)-d_top:round(mean_yvalue)+d_bottom,round(mean_xvalue)-d_left:round(mean_xvalue)+d_right);
+
                 imshow(frame,[],'Border','tight','InitialMagnification',150); % show image scaled between its min and max values ([]).
                 hold on;
                 
                 % Transform centre-of-mass to coordinate system referred to
                 % subarray. x_values(k) is position on full original frame.
                 % x_valuesB is position on subarray:
-                x_valuesB = x_values(k)-(mean_xvalue-d)+1;
-                y_valuesB = y_values(k)-(mean_yvalue-d)+1;
+%                 x_valuesB = x_values(k)-(mean_xvalue-d)+1;
+%                 y_valuesB = y_values(k)-(mean_yvalue-d)+1;
+                x_valuesB = x_values(k)-(mean_xvalue-d_left)+1;
+                y_valuesB = y_values(k)-(mean_yvalue-d_top)+1;
                 
                 plot(x_valuesB,y_valuesB,'x','Color','g','MarkerSize',10) % plot found centre-of-mass positions in green.
                 

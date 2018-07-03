@@ -57,9 +57,9 @@ function particle_result = findParticleAngle1frame(frame,x_estimate,y_estimate,i
 % PARAMETERS:
 d_min = 10; % minimum subarray halfsize in pixels. If candidate bead centre too close to edge, return empty result.
 % Additional background subtraction: 1 for yes, 0 for no.
-additional_bgnd_subtract = 0; % Default = 0 if background-subtracted image is used as input.
+additional_bgnd_subtract = 1; % Default = 0 if background-subtracted image is used as input.
 % Thresholding parameter:
-threshold_factor = 1;
+threshold_factor = 0.6; % Default: 1. Reduce to e.g. 0.6, to avoid overestimating particle size when particles have blurry edges.
 %-----------------
 
 % % Aid plot: plot original frame and estimate centre position
@@ -226,7 +226,7 @@ else
     %% Obtain particle orientation:
     
     conn_regions = bwconncomp(particle3,8); % find connected components in final binary image
-    conn_regions_props = regionprops(conn_regions,'Orientation', 'MajorAxisLength', 'MinorAxisLength', 'Centroid','Area');
+    conn_regions_props = regionprops(conn_regions,'Orientation', 'MajorAxisLength', 'MinorAxisLength', 'Centroid','Area','PixelList');
     % 'Orientation' = angle (degrees) that the major axis of an ellipsoid
     % matching the connected region makes with respect to the horizontal axis.
     % Note that this angle is in degrees ranging from -90 to 90 degrees
@@ -245,6 +245,8 @@ else
         foundXcentre = conn_regions_props.Centroid(1); % x centre-of-mass position within image subarray.
         foundYcentre = conn_regions_props.Centroid(2); % y centre-of-mass position within image subarray.
         
+        allPointsInMask = conn_regions_props.PixelList; % location of all points in the region. List with raws with [x y] for coordinates of each pixel in region.
+        
         % Get all points from ellipse contour to plot them and points in
         % major axis (coordinates within image subarray):
         ellipse = getEllipsePts(conn_regions_props); % get all points in the ellipse that matches the connected region 
@@ -252,7 +254,8 @@ else
         ypoints_ellipse = ellipse.contourYpoints;      
         xpoints_majorAxis = ellipse.majorAxisXpoints;
         ypoints_majorAxis = ellipse.majorAxisYpoints;
-        
+        xpoints_mask = allPointsInMask(:,1);
+        ypoints_mask = allPointsInMask(:,2);
         % [ySkel, xSkel]=find(skeleton==true); % get all skeleton points
         
         % f = getframe; % capture screen shot of figure. F = getframe gets a frame from the current axes.
@@ -282,17 +285,26 @@ else
         particle_result.TooCloseToEdge = tooCloseToEdge; % 1 if bead candidate was closer to edge of image than d_min.
         particle_result.Area = conn_regions_props.Area; % total number of pixels in connected region.
         % -----------------------------------------------------------------------
-%         % % Auxiliary stuff below:
-%         % % Plot results:
+        % % Auxiliary stuff below:
+        % % Plot results:
 %         figure;
-%         subplot(1,2,1)
+%         subplot(3,2,1)
+%         imshow(I,[])
+%         title('Original subarray')
+%         subplot(3,2,2)
+%         imshow(I2,[])
+%         title('Background-subtracted')
+%         subplot(3,2,3)
+%         imshow(particle3,[])
+%         title('Thresholded image')
+%         subplot(3,2,4)
 %         imshow(frame,[]);
 %         hold on;
 %         plot(foundXcentre + (round(x_estimate)-d),foundYcentre + (round(y_estimate)-d),'o','Color','g','MarkerSize',5); 
 %         title('particle in whole frame')
 %         hold off;
 %         % plot subarray as well:
-%         subplot(1,2,2)
+%         subplot(3,2,5)
 %         imshow(I2,[]);
 %         hold on;
 %         plot(foundXcentre,foundYcentre,'x','Color','g','MarkerSize',7); 
@@ -302,7 +314,12 @@ else
 %         plot(xpoints_majorAxis,ypoints_majorAxis,'y','LineWidth',1);
 %         % plot(xSkel, ySkel, '.b', 'MarkerSize',4);
 %         hold off;
-        
+%         subplot(3,2,6)
+%         imshow(I2,[]);
+%         hold on;
+%         plot(xpoints_mask,ypoints_mask,'x','Color','g','MarkerSize',3)       
+%         title('Mask points')
+%         hold off;
     else % if no connected regions (no darker particle) found:
         particle_result.estimateXcentre = x_estimate; % x-centre estimate input.
         particle_result.estimateYcentre = y_estimate; % y-centre estimate input.
