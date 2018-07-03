@@ -271,6 +271,10 @@ if unique([traj_results.TrajNumber])<=1
     % the previous data contains only particles which have been linked into a
     % trajectory.
     
+    % Params for "FindTrajects.m":
+    dataForSheet1 = [fieldnames(params_for_FindTrajects) struct2cell(params_for_FindTrajects)];   
+    xlswrite(output_filename,dataForSheet1,'params FindTrajects'); % write data with parameters for "FindTrajects.m" to sheet 'params FindTrajects' in excel file.
+    
     % Export also all (non-empty) particles in the input (traj_results) structure, even if they have not been linked into trajectories, i.e.,
     % export "all_data_to_export":
     all_data_to_export_2 = [data_to_export_labels; num2cell(all_data_to_export)]; % Add as a first row the fieldnames (labels for each column).
