@@ -453,6 +453,8 @@ for n = n_traj_start:n_traj_end
 %             d_bottom = subarray_halfwidth*extraSubarraySizeFactor;
 %             d_left = subarray_halfwidth*extraSubarraySizeFactor;
 %             d_right = subarray_halfwidth*extraSubarraySizeFactor;
+            % Use the following for particle transport over a certain
+            % distance (e.g., for magnetophoresis data):
             d_top = 30;
             d_bottom = 30;
             d_left = 320;
