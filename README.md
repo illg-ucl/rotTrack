@@ -5,6 +5,12 @@ Matlab code for the detection and positional and rotational tracking of (non-sph
 **Related publication**: 
 *Polymeric microellipsoids with programmed magnetic anisotropy for controlled rotation using low (~10 mT) magnetic fields*, A. Bonilla-Brunner, I. Llorente-Garcia, B. Jang, M. Amano Patiño, V. Alimchandani, B. J. Nelson, S. Pane and S. Contera, Applied Materials Today 18, 100511 (2020). https://www.sciencedirect.com/science/article/abs/pii/S2352940719306304?via%3Dihub.
 
+Example:
+
+<p align="center">
+  <img src="https://github.com/illg-ucl/rotTrack/blob/master/rotatingParticle_bis_small.png" width=50% height=50%>
+</p>
+
 # Copyright and License
 
 Copyright (c) 2017. Isabel Llorente-Garcia, Dept. of Physics and Astronomy, University College London, United Kingdom.
